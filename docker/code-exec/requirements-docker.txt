@@ -1,0 +1,16 @@
+numpy
+scipy
+pandas
+matplotlib
+seaborn
+plotly==5.20.0
+kaleido==0.2.1
+statsmodels
+openpyxl
+xlrd
+lxml
+python-docx
+pillow
+tabulate
+typing_extensions
+chardet 

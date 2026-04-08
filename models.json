@@ -1,0 +1,230 @@
+{
+    "Claude Sonnet 4.6": {
+        "model": "claude-sonnet-4-6",
+        "key_env": "ANTHROPIC_API_KEY",
+        "api_type": "anthropic",
+        "thinking": {
+            "type": "disabled"
+        },
+        "metadata": {
+            "vision_capable": true
+        },
+        "additional_info": {
+            "parameters": {
+                "thinking": {
+                    "type": "anthropic-thinking",
+                    "checkbox_label": "Enable thinking",
+                    "number_label": "Thinking Budget:",
+                    "min": 1024,
+                    "max": 30000,
+                    "default_budget": 1024
+                }
+            }
+        }
+    },
+    "Claude Sonnet 4.5": {
+        "model": "claude-sonnet-4-5",
+        "key_env": "ANTHROPIC_API_KEY",
+        "api_type": "anthropic",
+        "thinking": {
+            "type": "disabled"
+        },
+        "metadata": {
+            "vision_capable": true
+        },
+        "additional_info": {
+            "parameters": {
+                "thinking": {
+                    "type": "anthropic-thinking",
+                    "checkbox_label": "Enable thinking",
+                    "number_label": "Thinking Budget:",
+                    "min": 1024,
+                    "max": 30000,
+                    "default_budget": 1024
+                }
+            }
+        }
+    },
+    "Claude Haiku 4.5": {
+        "model": "claude-haiku-4-5",
+        "key_env": "ANTHROPIC_API_KEY",
+        "api_type": "anthropic",
+        "thinking": {
+            "type": "disabled"
+        },
+        "metadata": {
+            "vision_capable": true
+        },
+        "additional_info": {
+            "parameters": {
+                "thinking": {
+                    "type": "anthropic-thinking",
+                    "checkbox_label": "Enable thinking",
+                    "number_label": "Thinking Budget:",
+                    "min": 1024,
+                    "max": 30000,
+                    "default_budget": 1024
+                }
+            }
+        }
+    },
+    "GPT-5.4": {
+        "model": "gpt-5.4",
+        "key_env": "OPENAI_API_KEY",
+        "api_type": "openai",
+        "reasoning_effort": "low",
+        "metadata": {
+            "vision_capable": true
+        },
+        "additional_info": {
+            "parameters": {
+                "reasoning_effort": {
+                    "type": "select",
+                    "label": "Reasoning effort:",
+                    "options": [
+                        "none",
+                        "low",
+                        "medium",
+                        "high"
+                    ],
+                    "default": "low"
+                }
+            }
+        }
+    },
+    "GPT-5.2": {
+        "model": "gpt-5.2",
+        "key_env": "OPENAI_API_KEY",
+        "api_type": "openai",
+        "reasoning_effort": "low",
+        "metadata": {
+            "vision_capable": true
+        },
+        "additional_info": {
+            "parameters": {
+                "reasoning_effort": {
+                    "type": "select",
+                    "label": "Reasoning effort:",
+                    "options": [
+                        "none",
+                        "low",
+                        "medium",
+                        "high"
+                    ],
+                    "default": "low"
+                }
+            }
+        }
+    },
+    "GPT-5 mini": {
+        "model": "gpt-5-mini",
+        "key_env": "OPENAI_API_KEY",
+        "api_type": "openai",
+        "reasoning_effort": "low",
+        "metadata": {
+            "vision_capable": true
+        },
+        "additional_info": {
+            "parameters": {
+                "reasoning_effort": {
+                    "type": "select",
+                    "label": "Reasoning effort:",
+                    "options": [
+                        "minimal",
+                        "low",
+                        "medium",
+                        "high"
+                    ],
+                    "default": "low"
+                }
+            }
+        }
+    },
+    "GPT-5 nano": {
+        "model": "gpt-5-nano",
+        "key_env": "OPENAI_API_KEY",
+        "api_type": "openai",
+        "reasoning_effort": "low",
+        "metadata": {
+            "vision_capable": true
+        },
+        "additional_info": {
+            "parameters": {
+                "reasoning_effort": {
+                    "type": "select",
+                    "label": "Reasoning effort:",
+                    "options": [
+                        "minimal",
+                        "low",
+                        "medium",
+                        "high"
+                    ],
+                    "default": "low"
+                }
+            }
+        }
+    },
+    "GPT-4.1 mini": {
+        "model": "gpt-4.1-mini",
+        "key_env": "OPENAI_API_KEY",
+        "api_type": "openai",
+        "metadata": {
+            "vision_capable": true
+        }
+    },
+    "Gemini 3.1 Pro": {
+        "model": "gemini-3.1-pro-preview",
+        "key_env": "GEMINI_API_KEY",
+        "api_type": "google",
+        "metadata": {
+            "vision_capable": true
+        },
+        "additional_info": {
+            "parameters": {
+                "thinking_level": {
+                    "type": "select",
+                    "label": "Thinking level:",
+                    "options": [
+                        "Low",
+                        "Medium",
+                        "High"
+                    ],
+                    "default": "Low"
+                }
+            }
+        }
+    },
+    "Gemini 3 Flash": {
+        "model": "gemini-3-flash-preview",
+        "key_env": "GEMINI_API_KEY",
+        "api_type": "google",
+        "thinking_level": "Low",
+        "include_thoughts": false,
+        "metadata": {
+            "vision_capable": true
+        },
+        "additional_info": {
+            "parameters": {
+                "thinking_level": {
+                    "type": "select",
+                    "label": "Thinking level:",
+                    "options": [
+                        "Minimal",
+                        "Low",
+                        "Medium",
+                        "High"
+                    ],
+                    "default": "Low"
+                }
+            }
+        }
+    },
+    "Gemini 2.5 Flash Lite": {
+        "model": "gemini-2.5-flash-lite-preview-06-17",
+        "key_env": "GEMINI_API_KEY",
+        "api_type": "google",
+        "metadata": {
+            "vision_capable": true
+        }
+    }
+}

@@ -1,0 +1,9 @@
+Parameter,Value,Units
+Average day flow,37200,m³/d
+Maximum day flow,45260,m³/d
+Average day BOD load,7270,kg/d
+Average day TSS load,8160,kg/d
+Average day Total P load,240,kg/d
+Maximum month BOD load (30-day avg),8510,kg/d
+Maximum month TSS load (30-day avg),10530,kg/d
+Maximum month Total P load (30-day avg),310,kg/d

@@ -1,0 +1,73 @@
+Plant,Microorganism,Units,Stream,n_samples [-],median [original units],mean [original units],p25 [original units],p75 [original units]
+All plants pooled,Adenovirus,MPN/L,Effluent,48,0.02,15.162708333333333,0.02,0.07
+All plants pooled,Adenovirus,MPN/L,Influent,48,107.0,4541.271666666667,17.0,5818.75
+All plants pooled,Aerobic endospores,CFU/100mL,Effluent,45,8.0,19.221111111111114,4.5,17.5
+All plants pooled,Aerobic endospores,CFU/100mL,Influent,45,210.0,568.0444444444445,110.0,445.0
+All plants pooled,Cryptosporidium,/L,Effluent,47,0.19,1.8923404255319152,0.1,0.535
+All plants pooled,Cryptosporidium,/L,Influent,47,10.0,269.35319148936173,0.1,50.0
+All plants pooled,E. coli,MPN/100mL,Effluent,44,2.0,16.33409090909091,1.0,8.9
+All plants pooled,E. coli,MPN/100mL,Influent,45,7120000.0,82054222.22222222,4000000.0,53400000.0
+All plants pooled,Fecal coliform,MPN/100mL,Effluent,44,6.85,52.41363636363636,1.0,45.525
+All plants pooled,Fecal coliform,MPN/100mL,Influent,45,17900000.0,188166444.44444445,6200000.0,137000000.0
+All plants pooled,Giardia,/L,Effluent,47,4.4,14.717234042553194,2.5700000000000003,20.15
+All plants pooled,Giardia,/L,Influent,47,410.0,2078.385106382979,120.0,2510.0
+All plants pooled,Male-specific coliphage,PFU/mL,Effluent,46,1.0,6.380434782608695,1.0,1.0
+All plants pooled,Male-specific coliphage,PFU/mL,Influent,45,2310.0,3002.822222222222,1060.0,5000.0
+All plants pooled,Somatic coliphage,PFU/mL,Effluent,46,1.0,6.989130434782608,1.0,1.0
+All plants pooled,Somatic coliphage,PFU/mL,Influent,44,1430.0,2174.2045454545455,906.25,2783.75
+All plants pooled,Total coliform,MPN/100mL,Effluent,41,345.0,672.920487804878,68.3,1120.0
+All plants pooled,Total coliform,MPN/100mL,Influent,42,83900000.0,426861190.47619045,25732500.0,327650000.0
+BiSp,Adenovirus,MPN/L,Effluent,16,0.045,0.10750000000000001,0.02,0.1125
+BiSp,Adenovirus,MPN/L,Influent,16,64.0,3047.3125,16.5,6087.0
+BiSp,Aerobic endospores,CFU/100mL,Effluent,14,6.6,23.928571428571427,3.05,10.75
+BiSp,Aerobic endospores,CFU/100mL,Influent,14,157.5,628.9285714285714,87.5,391.25
+BiSp,Cryptosporidium,/L,Effluent,16,0.1,4.366875,0.0875,1.835
+BiSp,Cryptosporidium,/L,Influent,16,40.0,736.28125,0.1,1182.5
+BiSp,E. coli,MPN/100mL,Effluent,13,1.0,21.90769230769231,1.0,4.1
+BiSp,E. coli,MPN/100mL,Influent,14,9530000.0,95076428.57142857,3085000.0,45125000.0
+BiSp,Fecal coliform,MPN/100mL,Effluent,13,3.1,18.123076923076923,1.0,14.8
+BiSp,Fecal coliform,MPN/100mL,Influent,14,23750000.0,179161428.57142857,7400000.0,238750000.0
+BiSp,Giardia,/L,Effluent,16,1.45,7.4975,0.1475,4.077500000000001
+BiSp,Giardia,/L,Influent,16,2400.0,4576.0,197.5,6957.5
+BiSp,Male-specific coliphage,PFU/mL,Effluent,15,1.0,1.6,1.0,1.0
+BiSp,Male-specific coliphage,PFU/mL,Influent,14,5125.0,4984.642857142857,2975.0,5737.5
+BiSp,Somatic coliphage,PFU/mL,Effluent,15,1.0,5.333333333333333,1.0,1.0
+BiSp,Somatic coliphage,PFU/mL,Influent,13,1865.0,2548.4615384615386,1300.0,3600.0
+BiSp,Total coliform,MPN/100mL,Effluent,12,406.5,852.65,132.0,1445.775
+BiSp,Total coliform,MPN/100mL,Influent,13,145000000.0,631692307.6923077,47100000.0,461100000.0
+BrWo,Adenovirus,MPN/L,Effluent,16,0.02,0.0225,0.02,0.02
+BrWo,Adenovirus,MPN/L,Influent,16,17.5,904.065,15.25,479.25
+BrWo,Aerobic endospores,CFU/100mL,Effluent,15,8.6,18.66,5.5,17.5
+BrWo,Aerobic endospores,CFU/100mL,Influent,15,265.0,708.8,97.5,1075.0
+BrWo,Cryptosporidium,/L,Effluent,15,0.19,0.38799999999999996,0.08,0.505
+BrWo,Cryptosporidium,/L,Influent,15,10.0,21.23333333333334,0.1,20.0
+BrWo,E. coli,MPN/100mL,Effluent,15,1.0,13.9,1.0,1.0
+BrWo,E. coli,MPN/100mL,Influent,15,5200000.0,49584666.666666664,3355000.0,39715000.0
+BrWo,Fecal coliform,MPN/100mL,Effluent,15,1.0,17.65333333333333,1.0,2.55
+BrWo,Fecal coliform,MPN/100mL,Influent,15,8500000.0,106242666.66666667,5130000.0,83340000.0
+BrWo,Giardia,/L,Effluent,15,4.74,17.125333333333334,2.8449999999999998,16.505000000000003
+BrWo,Giardia,/L,Influent,15,410.0,970.94,105.0,1245.0
+BrWo,Male-specific coliphage,PFU/mL,Effluent,15,1.0,16.333333333333332,1.0,1.0
+BrWo,Male-specific coliphage,PFU/mL,Influent,15,1555.0,2135.0,805.0,2902.5
+BrWo,Somatic coliphage,PFU/mL,Effluent,15,1.0,14.933333333333334,1.0,1.0
+BrWo,Somatic coliphage,PFU/mL,Influent,15,985.0,2170.6666666666665,660.0,1780.0
+BrWo,Total coliform,MPN/100mL,Effluent,14,61.099999999999994,208.16428571428568,13.725,92.05000000000001
+BrWo,Total coliform,MPN/100mL,Influent,14,32550000.0,261225714.2857143,19337500.0,180675000.0
+NoWe,Adenovirus,MPN/L,Effluent,16,0.055,45.358125,0.02,0.08
+NoWe,Adenovirus,MPN/L,Influent,16,3025.0,9672.4375,262.5,11470.75
+NoWe,Aerobic endospores,CFU/100mL,Effluent,16,9.25,15.628125,4.5375,19.875
+NoWe,Aerobic endospores,CFU/100mL,Influent,16,217.5,382.8125,140.0,310.0
+NoWe,Cryptosporidium,/L,Effluent,16,0.26,0.828125,0.1075,0.525
+NoWe,Cryptosporidium,/L,Influent,16,10.0,35.037499999999994,0.1,50.0
+NoWe,E. coli,MPN/100mL,Effluent,16,9.2,14.087500000000002,4.1,14.775
+NoWe,E. coli,MPN/100mL,Influent,16,9850000.0,101100000.0,4737500.0,59202500.0
+NoWe,Fecal coliform,MPN/100mL,Effluent,16,48.95,112.8625,27.025,122.375
+NoWe,Fecal coliform,MPN/100mL,Influent,16,19850000.0,272849375.0,6035000.0,124175000.0
+NoWe,Giardia,/L,Effluent,16,10.015,19.679375,3.735,24.0
+NoWe,Giardia,/L,Influent,16,270.0,619.0,150.0,657.5
+NoWe,Male-specific coliphage,PFU/mL,Effluent,16,1.0,1.53125,1.0,1.0
+NoWe,Male-specific coliphage,PFU/mL,Influent,16,1432.5,2082.3125,835.0,2788.75
+NoWe,Somatic coliphage,PFU/mL,Effluent,16,1.0,1.09375,1.0,1.0
+NoWe,Somatic coliphage,PFU/mL,Influent,16,1457.5,1873.4375,907.5,2783.75
+NoWe,Total coliform,MPN/100mL,Effluent,15,816.4,962.9093333333333,500.20000000000005,1120.0
+NoWe,Total coliform,MPN/100mL,Influent,15,101700000.0,403934000.0,21100000.0,318600000.0

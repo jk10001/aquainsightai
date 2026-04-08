@@ -1,0 +1,3920 @@
+{% macro render_llm_option(alias, selected_alias) -%}
+{% set is_disabled = not llm_api_key_status.get(alias) %}
+<option value="{{ alias }}" {% if alias==selected_alias and not is_disabled %}selected{% endif %} {% if is_disabled
+    %}disabled class="llm-option-disabled" {% endif %}>{{ alias }}{% if is_disabled %} (API key missing){% endif %}
+</option>
+{%- endmacro %}
+<!doctype html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <title>AquaAnalyticsAI</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: rgb(232, 232, 232);
+            margin: 0;
+            padding: 0;
+            display: flex;
+            height: 100vh;
+            height: 100dvh;
+            overflow: hidden;
+        }
+
+        .llm-select select option.llm-option-disabled {
+            color: #888;
+        }
+
+        .sidebar {
+            width: 250px;
+            flex-shrink: 0;
+            background-color: #ffffff;
+            padding: 20px;
+            overflow-y: auto;
+            box-shadow: 2px 0 5px rgba(0, 0, 0, 0.3);
+            display: flex;
+            flex-direction: column;
+            min-height: 0;
+            padding-bottom: calc(20px + env(safe-area-inset-bottom, 0px));
+            -webkit-overflow-scrolling: touch;
+        }
+
+        .sidebar-title {
+            text-align: center;
+            margin: 0 0 12px 0;
+            line-height: 1.15;
+        }
+
+        .content-area {
+            flex: 1 1 auto;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            min-height: 0;
+        }
+
+        .main-content {
+            flex-grow: 1;
+            padding: 20px;
+            padding-bottom: calc(20px + env(safe-area-inset-bottom, 0px));
+            flex: 1 1 auto;
+            overflow-y: auto;
+            min-height: 0;
+            -webkit-overflow-scrolling: touch;
+            overflow-anchor: none;
+        }
+
+        h1,
+        h2 {
+            margin-bottom: 20px;
+        }
+
+        .analysis-item {
+            padding-left: 10px;
+            padding-right: 10px;
+            margin-bottom: 10px;
+            background-color: #f1f1f1;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 12px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 2px;
+            min-height: 36px;
+            position: relative;
+        }
+
+        .analysis-item-text {
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            flex-grow: 1;
+            min-width: 0;
+            margin-right: 0;
+        }
+
+        .analysis-item:hover {
+            background-color: #e1e1e1;
+        }
+
+        .analysis-item.selected {
+            background-color: #d1d1d1;
+        }
+
+        .analysis-item.inactive {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .info-row {
+            display: flex;
+            align-items: flex-start;
+            margin: 12px 0;
+        }
+
+        .info-row strong {
+            flex-shrink: 0;
+            margin-right: 10px;
+        }
+
+        .info-row .info-text {
+            flex-grow: 1;
+            padding-left: 20px;
+            border-left: 2px solid #ccc;
+        }
+
+        .user-notes-text {
+            cursor: pointer;
+        }
+
+        .user-notes-text:hover {
+            text-decoration: underline;
+        }
+
+        .form-container,
+        .results-container,
+        .item-box {
+            background-color: #ffffff;
+            padding-top: 10px;
+            padding-left: 20px;
+            padding-right: 20px;
+            padding-bottom: 20px;
+            font-size: 14px;
+            border-radius: 5px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+            margin-bottom: 20px;
+        }
+
+        #analysisContent {
+            font-size: 15px;
+        }
+
+        .form-container input,
+        .form-container textarea,
+        .form-container button {
+            width: 100%;
+            padding: 10px;
+            margin: 10px 0;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            box-sizing: border-box;
+            color: #333;
+        }
+
+        .form-container input[type="file"]::file-selector-button,
+        .form-container input[type="file"]::-webkit-file-upload-button {
+            color: #333;
+        }
+
+        /* Prevent global input margins inside LLM param controls (form only) */
+        .form-container .llm-select .param-control,
+        .form-container .llm-select .param-control>input,
+        .form-container .llm-select .param-control>select,
+        .form-container .llm-select .param-control>textarea {
+            margin-top: 0;
+            margin-bottom: 0;
+        }
+
+
+        #file,
+        #instructions {
+            width: calc(100%);
+            margin-right: 10px;
+        }
+
+        #instructions {
+            resize: vertical;
+        }
+
+        .form-container label {
+            margin-right: 10px;
+        }
+
+        .form-container select {
+            padding: 6px;
+            margin-bottom: 10px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            color: #333;
+        }
+
+        /* ---------------------- LLM selector groups ---------------------- */
+        .llm-select {
+            display: grid;
+            grid-template-columns: 160px 1fr;
+            align-items: center;
+            /* vertical centering for every row */
+            row-gap: 8px;
+            column-gap: 12px;
+            margin-top: 12px;
+        }
+
+        /* Rounded box is applied dynamically when a container has >=2 llm-selects */
+        .llm-select.boxed {
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            background: #fff;
+            padding: 12px 14px;
+            box-shadow: 0 1px 2px rgba(0, 0, 0, .08);
+        }
+
+        /* LEFT-JUSTIFY labels/selects */
+        .llm-select>label {
+            grid-column: 1;
+            margin: 0;
+            text-align: left;
+            /* (1) left justify labels */
+            display: flex;
+            /* (4) ensure vertical centering with selects */
+            align-items: center;
+            /* (4) */
+            justify-self: start;
+        }
+
+        .llm-select>select {
+            grid-column: 2;
+            margin: 0;
+            justify-self: start;
+            /* (1) left justify selects */
+        }
+
+        .llm-select .llm-params {
+            display: contents;
+            /* allow parameter rows to participate in the grid */
+        }
+
+        /* parameter labels – left aligned & vertically centered */
+        .llm-select .llm-params .param-label {
+            grid-column: 1;
+            text-align: left;
+            /* (1) */
+            margin-right: 10px;
+            display: flex;
+            /* (4) */
+            align-items: center;
+            /* (4) */
+        }
+
+        /* checkbox row sits in column 1; never wraps ("Enable thinking") */
+        .llm-select .llm-params .param-label.left-col {
+            grid-column: 1;
+            /* (2) keep in first column */
+            white-space: nowrap;
+            /* (2) keep text on one line */
+        }
+
+        .llm-select .llm-params .param-label.disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+
+        .llm-select .llm-params .param-control {
+            grid-column: 2;
+            justify-self: start;
+            /* (1) */
+        }
+
+        /* Compact widths inside LLM groups (override the global 100%) */
+        .form-container .llm-select select,
+        .form-container .llm-select input[type="number"],
+        .popup .llm-select select,
+        .popup .llm-select input[type="number"] {
+            width: auto;
+            max-width: 320px;
+        }
+
+        /* (3) Make Start New Analysis number field padding match popups (smaller) */
+        .form-container .llm-select input[type="number"] {
+            padding: 4px 8px;
+        }
+
+        /* ---------------------------------------------------------------- */
+
+        .item-content {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: space-between;
+        }
+
+        .item-content.single-item .item {
+            flex: 0 0 100%;
+        }
+
+        .item {
+            flex: 0 0 48%;
+        }
+
+        .item img {
+            max-width: 100%;
+            height: auto;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+
+        .overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.8);
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+        }
+
+        .modal-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            z-index: 900;
+        }
+
+        .overlay img {
+            max-width: 90%;
+            max-height: 90%;
+        }
+
+        .overlay-title {
+            position: absolute;
+            top: 10px;
+            left: 50%;
+            transform: translateX(-50%);
+            color: white;
+            font-size: 14px;
+            text-align: center;
+            display: none;
+        }
+
+        .close-btn {
+            position: absolute;
+            top: 20px;
+            right: 30px;
+            color: white;
+            font-size: 30px;
+            cursor: pointer;
+        }
+
+        #status {
+            font-weight: bold;
+            margin-bottom: 10px;
+        }
+
+        .spinner {
+            display: none;
+            width: 20px;
+            height: 20px;
+            border: 3px solid rgba(0, 0, 0, .3);
+            border-radius: 50%;
+            border-top-color: #000;
+            animation: spin 1s ease-in-out infinite;
+            flex-shrink: 0;
+            align-self: center;
+        }
+
+        @keyframes spin {
+            to {
+                transform: rotate(360deg);
+            }
+        }
+
+        .dropdown {
+            position: relative;
+            display: inline-block;
+        }
+
+        .dropdown-content {
+            display: none;
+            position: absolute;
+            right: 0;
+            background-color: #f9f9f9;
+            min-width: 160px;
+            box-shadow: 0px 8px 16px 0px rgba(0, 0, 0, 0.2);
+            z-index: 1;
+        }
+
+        .dropdown-content a {
+            color: black;
+            padding: 12px 16px;
+            text-decoration: none;
+            display: block;
+        }
+
+        .dropdown-content a:hover {
+            background-color: #f1f1f1;
+        }
+
+        .dropdown.open .dropdown-content {
+            display: block;
+        }
+
+        .three-dots {
+            cursor: pointer;
+            padding: 0 10px;
+        }
+
+        .three-dots.disabled {
+            cursor: not-allowed;
+            opacity: 0.5;
+            pointer-events: none;
+        }
+
+        #startNewAnalysis,
+        .form-container button[type="submit"] {
+            padding: 10px 20px;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 14px;
+            transition: background-color 0.3s;
+        }
+
+        #startNewAnalysis:hover,
+        .form-container button[type="submit"]:hover {
+            background-color: #45a049;
+        }
+
+        #startNewAnalysis:active,
+        .form-container button[type="submit"]:active {
+            background-color: #3e8e41;
+        }
+
+        #startNewAnalysis:disabled {
+            background-color: #cccccc;
+            cursor: not-allowed;
+        }
+
+        #analysisList {
+            margin-top: 20px;
+        }
+
+        .tabs {
+            display: flex;
+            border-bottom: 1px solid #ccc;
+            margin-bottom: 20px;
+        }
+
+        .tab {
+            padding: 10px 20px;
+            cursor: pointer;
+            border: 1px solid transparent;
+            border-bottom: none;
+        }
+
+        .tab.active {
+            background-color: #fafafa;
+            font-weight: bold;
+            border-color: #ccc;
+            border-bottom-color: #fff;
+            margin-bottom: -1px;
+        }
+
+        .tab-content {
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        .sheet-container {
+            display: flex;
+            width: 100%;
+            min-width: 0;
+        }
+
+        .sheet-info {
+            flex: 0 0 33%;
+            padding-right: 20px;
+            min-width: 0;
+        }
+
+        .sheet-grid {
+            flex: 0 0 calc(67% - 20px);
+            border: none;
+            min-width: 0;
+            overflow: hidden;
+            overflow-anchor: none;
+        }
+
+        table {
+            border-collapse: collapse;
+            width: 100%;
+            font-size: 12px;
+        }
+
+        th,
+        td {
+            border: 1px solid #ddd;
+            padding: 3px;
+            text-align: left;
+            min-width: 50px;
+        }
+
+        th {
+            background-color: #f2f2f2;
+            position: sticky;
+            top: 0;
+            z-index: 10;
+        }
+
+        td:empty::after {
+            content: "\00a0";
+        }
+
+        .chart-box {
+            position: relative;
+        }
+
+        .chart-buttons {
+            position: static;
+            display: flex;
+            gap: 5px;
+        }
+
+        .chart-item-header {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-top: 5px;
+            margin-bottom: 10px;
+        }
+
+        .chart-item-header h3 {
+            margin: 0;
+            flex: 1 1 auto;
+        }
+
+        .drag-handle {
+            cursor: grab;
+            user-select: none;
+            font-size: 14px;
+            line-height: 1;
+            display: flex;
+            align-items: center;
+        }
+
+        .drag-handle:active {
+            cursor: grabbing;
+        }
+
+        .drag-handle.drag-disabled {
+            cursor: not-allowed;
+            opacity: 0.5;
+        }
+
+        .chart-box.dragging {
+            opacity: 0.6;
+        }
+
+        .delete-chart-btn,
+        .revise-chart-btn,
+        .revise-summary-btn,
+        .add-chart-btn {
+            padding: 5px 10px;
+            background-color: #f0f0f0;
+            border: 1px solid #ccc;
+            border-radius: 3px;
+            cursor: pointer;
+            transition: opacity 0.3s ease, background-color 0.3s;
+            color: #333;
+        }
+
+        .delete-chart-btn:hover,
+        .revise-chart-btn:hover,
+        .revise-summary-btn:hover,
+        .add-chart-btn:hover {
+            background-color: #e0e0e0;
+        }
+
+        .delete-chart-btn:disabled,
+        .revise-chart-btn:disabled,
+        .revise-summary-btn:disabled,
+        .add-chart-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            background-color: #cccccc;
+        }
+
+        .popup {
+            display: none;
+            position: fixed;
+            left: 50%;
+            top: 20px;
+            transform: translateX(-50%);
+            background-color: white;
+            padding: 20px;
+            border-radius: 5px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
+            z-index: 1000;
+            box-sizing: border-box;
+            text-align: center;
+            font-size: 14px;
+        }
+
+        .popup-fixed {
+            width: 400px;
+            height: 100px;
+        }
+
+        .popup textarea {
+            width: 100%;
+            height: 100px;
+            margin-bottom: 10px;
+            border-radius: 5px;
+            resize: vertical;
+        }
+
+        .popup select,
+        .popup textarea,
+        .popup button,
+        .popup input[type="text"],
+        .popup input[type="checkbox"] {
+            font-size: 14px;
+        }
+
+        .rename-popup {
+            width: 400px;
+        }
+
+        .rename-popup input[type="text"] {
+            width: 100%;
+            box-sizing: border-box;
+        }
+
+        .popup select {
+            padding: 6px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            color: #333;
+        }
+
+        .popup button {
+            color: #333;
+        }
+
+        .popup-buttons {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 10px;
+        }
+
+        .summary-container {
+            position: relative;
+        }
+
+        .revise-summary-btn {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+        }
+
+        .chart-tabs {
+            display: flex;
+            border-bottom: 1px solid #ccc;
+            margin-bottom: 10px;
+        }
+
+        .chart-tab {
+            padding: 5px 10px;
+            cursor: pointer;
+            border: 1px solid transparent;
+            border-bottom: none;
+        }
+
+        .chart-tab.active {
+            background-color: #fafafa;
+            font-weight: bold;
+            border-color: #ccc;
+            border-bottom-color: #fff;
+            margin-bottom: -1px;
+        }
+
+        .chart-tab-content {
+            display: none;
+        }
+
+        .chart-tab-content.active {
+            display: block;
+        }
+
+        .chart-data-table {
+            max-width: 100%;
+            min-width: 0;
+            overflow: hidden;
+            overflow-anchor: none;
+        }
+
+        .chart-data-table table {
+            width: 100%;
+            table-layout: auto;
+        }
+
+        .chart-tab-content {
+            max-width: 100%;
+            min-width: 0;
+        }
+
+        .item-content .item {
+            flex: 0 0 48%;
+            box-sizing: border-box;
+        }
+
+        .tabulator,
+        .tabulator .tabulator-cell {
+            font-size: 11px !important;
+        }
+
+        .tabulator {
+            background-color: #f0f0f0 !important;
+            border: none !important;
+            box-shadow: none !important;
+            width: 100% !important;
+            overflow-anchor: none;
+        }
+
+        .tabulator .tabulator-tableholder {
+            background-color: #ffffff !important;
+            border: none !important;
+            box-shadow: none !important;
+            overflow-anchor: none;
+        }
+
+        .tabulator .tabulator-col .tabulator-col-title {
+            white-space: normal !important;
+            word-wrap: break-word;
+            line-height: 1.2;
+        }
+
+        .sheet-grid,
+        .chart-data-table {
+            width: 100%;
+            box-sizing: border-box;
+            min-width: 0;
+        }
+
+        .item-content {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: space-between;
+        }
+
+        .item {
+            flex: 1 1 48%;
+            max-width: 48%;
+            min-width: 0;
+            box-sizing: border-box;
+        }
+
+        .chart-tab-container {
+            width: 100%;
+            max-width: 100%;
+            box-sizing: border-box;
+            min-width: 0;
+        }
+
+        .chart-tab-container .tabulator {
+            width: 100% !important;
+        }
+
+        .code-pane {
+            max-height: 300px;
+            overflow: auto;
+            background: #f7f7f7;
+            padding: 0;
+        }
+
+        pre.chart-code {
+            font-size: 11px;
+            background: #f7f7f7;
+            padding: 10px;
+            margin: 0;
+            overflow: visible;
+            white-space: pre;
+            width: max-content;
+            min-width: 100%;
+            box-sizing: border-box;
+        }
+
+        /* ----------  Report & summary panels  ---------- */
+        .section-header {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 12px;
+        }
+
+        .section-header h3 {
+            margin: 0;
+        }
+
+        .status-text {
+            font-style: italic;
+            color: #a1a1a1;
+            white-space: nowrap;
+        }
+
+        .status-text:empty {
+            display: none;
+        }
+
+        .summary-actions {
+            display: flex;
+            gap: 6px;
+            align-items: center;
+            flex-wrap: wrap;
+            margin-bottom: 12px;
+        }
+
+        /* ----------  Report panel  ---------- */
+        .report-buttons {
+            display: flex;
+            gap: 6px;
+            align-items: center;
+            flex-wrap: wrap
+        }
+
+        .report-btn {
+            padding: 5px 10px;
+            background: #f0f0f0;
+            border: 1px solid #ccc;
+            border-radius: 3px;
+            cursor: pointer;
+            transition: background-color .3s;
+            color: #333;
+        }
+
+        .report-btn:hover {
+            background: #e0e0e0;
+        }
+
+        .report-btn:disabled {
+            opacity: .5;
+            cursor: not-allowed;
+            background: #ccc;
+        }
+
+        .report-toggle {
+            margin-left: auto;
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+            color: #314234;
+            font-size: 13px;
+            user-select: none;
+        }
+
+        .report-toggle.is-disabled {
+            color: #9aa39a;
+        }
+
+        .report-switch {
+            position: relative;
+            display: inline-flex;
+            width: 42px;
+            height: 24px;
+            flex: 0 0 42px;
+        }
+
+        .report-switch input {
+            opacity: 0;
+            position: absolute;
+            inset: 0;
+            width: 100%;
+            height: 100%;
+            margin: 0;
+            cursor: pointer;
+            -webkit-appearance: none;
+            appearance: none;
+        }
+
+        .report-slider {
+            position: absolute;
+            inset: 0;
+            display: block;
+            width: 100%;
+            height: 100%;
+            border-radius: 999px;
+            background: #bcc7bb;
+            border: 1px solid rgba(49, 66, 52, 0.18);
+            transition: background-color .2s ease;
+            cursor: pointer;
+            box-sizing: border-box;
+            pointer-events: none;
+            transform: translateZ(0);
+        }
+
+        .report-slider::before {
+            content: "";
+            position: absolute;
+            width: 18px;
+            height: 18px;
+            left: 3px;
+            top: 50%;
+            border-radius: 50%;
+            background: #fff;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.18);
+            transform: translateY(-50%);
+            transition: transform .2s ease;
+            box-sizing: border-box;
+        }
+
+        .report-switch input:checked+.report-slider {
+            background: #3e6a4a;
+        }
+
+        .report-switch input:checked+.report-slider::before {
+            transform: translate(18px, -50%);
+        }
+
+        .report-switch input:disabled+.report-slider {
+            background: #d2d7d1;
+            cursor: not-allowed;
+        }
+
+        .report-viewer-wrap {
+            display: none;
+            margin-top: 14px;
+        }
+
+        .report-viewer-wrap.is-visible {
+            display: block;
+        }
+
+        .report-viewer-frame {
+            display: block;
+            width: 100%;
+            height: min(980px, 78vh);
+            border: 0;
+            background: transparent;
+        }
+
+        .report-tab-container {
+            width: 100%;
+            max-width: 100%;
+            box-sizing: border-box;
+        }
+
+        .report-tab-container .chart-tabs {
+            margin-bottom: 10px;
+        }
+
+        .report-tab-container>.chart-tab-content {
+            padding-left: 18px;
+            padding-right: 18px;
+            box-sizing: border-box;
+        }
+
+        .report-code-pane {
+            max-height: min(980px, 78vh);
+            margin-left: 18px;
+            margin-right: 18px;
+        }
+
+        @media (max-width: 720px) {
+            .report-toggle {
+                margin-left: 0;
+                width: 100%;
+                justify-content: flex-end;
+            }
+
+            .report-viewer-frame {
+                height: 68vh;
+            }
+
+            .report-tab-container>.chart-tab-content {
+                padding-left: 10px;
+                padding-right: 10px;
+            }
+
+            .report-code-pane {
+                margin-left: 10px;
+                margin-right: 10px;
+            }
+        }
+
+        #popup-message {
+            white-space: pre-line;
+        }
+
+        #reviseReportPopup label#includeExistingContextLabel,
+        #reviseReportPopup label#llmReviewLabel,
+        #reviseSummaryPopup label#includeImagesLabel {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            margin: 10px 0;
+            text-align: left;
+        }
+
+        #reviseReportPopup label#llmReviewLabel.disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+
+        #reviseReportPopup label#llmReviewLabel.disabled input {
+            pointer-events: none;
+        }
+
+        #reviseReportPopup,
+        #reviseSummaryPopup,
+        #reviseChartPopup,
+        #addChartPopup {
+            width: 550px;
+        }
+
+        /* ======================  status / confirmation bar  ====================== */
+        .status-bar {
+            width: 100%;
+            background: linear-gradient(180deg, #eaf7e7 0%, #e1f2de 100%);
+            border-bottom: 1px solid #c4dec0;
+            box-shadow: 0 2px 6px rgba(0, 0, 0, .12);
+            z-index: 5;
+        }
+
+        .status-bar-inner {
+            min-height: 80px;
+            max-width: 900px;
+            margin: 0 auto;
+            padding: 18px 40px 16px;
+            display: flex;
+            flex-direction: column;
+            justify-content: flex-start;
+            align-items: center;
+            text-align: center;
+            position: relative;
+            gap: 6px;
+        }
+
+        .status-text-top {
+            font-weight: 600;
+            color: #000;
+            margin-bottom: 2px;
+            font-size: 15px;
+            line-height: 1.3;
+            max-width: 100%;
+        }
+
+        .status-text-bottom {
+            color: #0066d1;
+            font-size: 14px;
+            line-height: 1.3;
+            max-width: 100%;
+            min-height: 1.2em;
+        }
+
+        .status-text-bottom:empty {
+            display: none;
+            min-height: 0;
+        }
+
+        .status-buttons {
+            display: flex;
+            gap: 14px;
+            margin-top: 2px;
+            pointer-events: auto;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+
+        .status-buttons button {
+            min-width: 120px;
+            padding: 8px 22px;
+            font-size: 14px;
+            font-weight: 500;
+            background: #f5f5f5;
+            border: 1px solid #a3a3a3;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: background .2s, transform .2s;
+            color: #333;
+        }
+
+        .status-buttons button:hover {
+            background: #e0e0e0;
+            transform: translateY(-1px);
+        }
+
+        .status-progress {
+            position: absolute;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            height: 4px;
+            overflow: hidden;
+        }
+
+        .progress-line {
+            position: absolute;
+            height: 100%;
+            width: 5%;
+            background: #45a049;
+            animation: bounce 2s linear infinite alternate;
+            will-change: transform;
+        }
+
+        .status-additional-instructions {
+            display: none;
+            width: 100%;
+            margin-top: 2px;
+            text-align: left;
+            background: rgba(255, 255, 255, 0.55);
+            border: 1px solid #c1d5bd;
+            border-radius: 10px;
+            padding: 10px 12px 12px;
+            box-sizing: border-box;
+        }
+
+        .status-additional-instructions label {
+            display: block;
+            margin-bottom: 6px;
+            text-align: left;
+            font-size: 13px;
+            color: #244122;
+            font-weight: 500;
+        }
+
+        .status-additional-instructions input {
+            width: 100%;
+            box-sizing: border-box;
+            padding: 9px 10px;
+            font-size: 13px;
+            border: 1px solid #9eb59b;
+            border-radius: 6px;
+            background: #fff;
+        }
+
+        .status-additional-instructions input:focus {
+            outline: 2px solid rgba(56, 138, 66, 0.35);
+            outline-offset: 1px;
+            border-color: #6ca171;
+        }
+
+        .status-bar-inner.has-additional-instructions {
+            padding-top: 12px;
+            padding-bottom: 12px;
+            gap: 4px;
+        }
+
+        .status-bar-inner.has-additional-instructions .status-buttons {
+            margin-top: 4px;
+        }
+
+        @media (max-width: 900px) {
+            .status-bar-inner {
+                padding: 14px 20px 14px;
+            }
+
+            .status-text-top {
+                font-size: 14px;
+            }
+
+            .status-text-bottom {
+                font-size: 14px;
+            }
+
+            .status-additional-instructions label {
+                font-size: 12px;
+            }
+
+            .status-additional-instructions input {
+                font-size: 12px;
+            }
+        }
+
+        @keyframes bounce {
+            0% {
+                transform: translate3d(0, 0, 0);
+            }
+
+            100% {
+                transform: translate3d(1900%, 0, 0);
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div class="sidebar">
+        <h3 class="sidebar-title">AquaAnalyticsAI</h3>
+        <button id="startNewAnalysis">Start New Analysis</button>
+        <div id="analysisList"></div>
+    </div>
+    <div class="content-area">
+        <div id="statusBar" class="status-bar" style="display:none;">
+            <div class="status-bar-inner">
+                <div class="status-text-top"></div>
+                <div class="status-text-bottom"></div>
+                <div class="status-additional-instructions">
+                    <label for="statusAdditionalInstructionsInput">Additional instructions (optional)</label>
+                    <input type="text" id="statusAdditionalInstructionsInput"
+                        placeholder="Add optional instructions for the next analysis step">
+                </div>
+                <div class="status-buttons"></div>
+                <div class="status-progress">
+                    <div class="progress-line"></div>
+                </div>
+            </div>
+        </div>
+        <div class="main-content">
+            <h2 id="analysisTitle"></h2>
+            <div id="analysisForm" style="display:none;">
+                <div class="form-container">
+                    <h2>Start New Analysis</h2>
+                    <form id="uploadForm" enctype="multipart/form-data">
+                        <input type="file" id="file" name="file" accept=".csv,.xlsx" required>
+                        <textarea id="instructions" name="instructions" rows="4" cols="50"
+                            placeholder="Enter analysis instructions..."></textarea>
+
+                        <div class="llm-select">
+                            <label for="dataLlmSelect">Data analysis LLM:</label>
+                            <select id="dataLlmSelect" name="data_llm_alias">
+                                {% for alias in data_llm_aliases %}
+                                {{ render_llm_option(alias, default_data_llm_alias) }}
+                                {% endfor %}
+                            </select>
+                        </div>
+
+                        <div class="llm-select">
+                            <label for="codeLlmSelect">Code LLM:</label>
+                            <select id="codeLlmSelect" name="code_llm_alias">
+                                {% for alias in code_llm_aliases %}
+                                {{ render_llm_option(alias, default_code_llm_alias) }}
+                                {% endfor %}
+                            </select>
+                        </div>
+
+                        <div class="llm-select">
+                            <label for="summaryLlmSelect">Summary LLM:</label>
+                            <select id="summaryLlmSelect" name="summary_llm_alias">
+                                {% for alias in summary_llm_aliases %}
+                                {{ render_llm_option(alias, default_summary_llm_alias) }}
+                                {% endfor %}
+                            </select>
+                        </div>
+
+                        <button type="submit">Analyse</button>
+                    </form>
+                </div>
+            </div>
+            <div id="analysisContent" style="display:none;">
+                <div id="analysisDescription"></div>
+                <div id="analysisSummary"></div>
+                <div id="analysisResults"></div>
+            </div>
+        </div>
+    </div>
+
+    <div id="overlay" class="overlay">
+        <span class="close-btn" onclick="hideOverlay()">×</span>
+        <div id="overlayTitle" class="overlay-title"></div>
+        <img id="overlayImg" src="" alt="Full-size image">
+    </div>
+    <div id="modalOverlay" class="modal-overlay"></div>
+
+    <div id="popup" class="popup popup-fixed">
+        <p id="popup-message"></p>
+        <div class="popup-buttons">
+            <button id="popup-yes">Yes</button>
+            <button id="popup-no">No</button>
+        </div>
+    </div>
+
+    <div id="renameAnalysisPopup" class="popup rename-popup">
+        <h3>Rename Analysis</h3>
+        <p>Update the name for this analysis.</p>
+        <input type="text" id="renameAnalysisInput">
+        <div class="popup-buttons">
+            <button id="confirmRenameBtn">Save</button>
+            <button id="cancelRenameBtn">Cancel</button>
+        </div>
+    </div>
+
+    <div id="deleteAnalysisPopup" class="popup">
+        <h3>Delete Analysis</h3>
+        <p>Are you sure you want to delete <strong id="deleteAnalysisName"></strong>?</p>
+        <div class="popup-buttons">
+            <button id="confirmDeleteAnalysisBtn">Delete</button>
+            <button id="cancelDeleteAnalysisBtn">Cancel</button>
+        </div>
+    </div>
+
+    <div id="userNotesPopup" class="popup">
+        <h3>Edit User Notes</h3>
+        <p>Add or update notes for this analysis. These notes will not affect processing.</p>
+        <textarea id="userNotesTextarea"></textarea>
+        <div class="popup-buttons">
+            <button id="saveUserNotesBtn">Save</button>
+            <button id="cancelUserNotesBtn">Cancel</button>
+        </div>
+    </div>
+
+    <div id="addChartPopup" class="popup">
+        <h3>Add New Analysis Component</h3>
+        <p>Please provide instructions for the new analysis component:</p>
+        <textarea id="newChartInstructions"></textarea>
+
+        <div class="llm-select">
+            <label for="addDataLlmSelect">Data analysis LLM:</label>
+            <select id="addDataLlmSelect">
+                {% for alias in data_llm_aliases %}
+                {{ render_llm_option(alias, default_data_llm_alias) }}
+                {% endfor %}
+            </select>
+        </div>
+
+        <div class="llm-select">
+            <label for="addCodeLlmSelect">Code LLM:</label>
+            <select id="addCodeLlmSelect">
+                {% for alias in code_llm_aliases %}
+                {{ render_llm_option(alias, default_code_llm_alias) }}
+                {% endfor %}
+            </select>
+        </div>
+
+        <div class="popup-buttons">
+            <button id="addNewChartBtn">Add component</button>
+            <button id="cancelAddChartBtn">Cancel</button>
+        </div>
+    </div>
+
+    <div id="reviseChartPopup" class="popup">
+        <h3>Revise Analysis Component</h3>
+        <p>Please provide instructions for revising this component:</p>
+        <textarea id="reviseChartInstructions"></textarea>
+
+        <div class="llm-select">
+            <label for="reviseDataLlmSelect">Data analysis LLM:</label>
+            <select id="reviseDataLlmSelect">
+                {% for alias in data_llm_aliases %}
+                {{ render_llm_option(alias, default_data_llm_alias) }}
+                {% endfor %}
+            </select>
+        </div>
+
+        <div class="llm-select">
+            <label for="reviseCodeLlmSelect">Code LLM:</label>
+            <select id="reviseCodeLlmSelect">
+                {% for alias in code_llm_aliases %}
+                {{ render_llm_option(alias, default_code_llm_alias) }}
+                {% endfor %}
+            </select>
+        </div>
+
+        <div class="popup-buttons">
+            <button id="reviseChartBtn">Revise</button>
+            <button id="cancelReviseChartBtn">Cancel</button>
+        </div>
+    </div>
+
+    <div id="reviseSummaryPopup" class="popup">
+        <h3>Revise/Refresh Summary</h3>
+        <p>If needed, please provide instructions for revision of the summary. To refresh the summary, leave blank.</p>
+        <textarea id="reviseSummaryInstructions"></textarea>
+        {% if allow_html_summary_generation %}
+        <label id="includeImagesLabel"><input type="checkbox" id="includeImages"> Include images in summary</label>
+        {% endif %}
+
+        <div class="llm-select">
+            <label for="reviseSummaryLlmSelect">Summary LLM:</label>
+            <select id="reviseSummaryLlmSelect">
+                {% for alias in summary_llm_aliases %}
+                {{ render_llm_option(alias, default_summary_llm_alias) }}
+                {% endfor %}
+            </select>
+        </div>
+
+        <div class="popup-buttons">
+            <button id="reviseSummaryBtn">Revise/refresh summary</button>
+            <button id="cancelReviseSummaryBtn">Cancel</button>
+        </div>
+    </div>
+
+    <div id="reviseReportPopup" class="popup">
+        <h3>Revise Report</h3>
+        <p>Please provide instructions for generating the report
+            (leave blank to generate without instructions):</p>
+        <textarea id="reviseReportInstructions"></textarea>
+
+        <!-- unified model picker layout -->
+        <div class="llm-select">
+            <label for="llmSelect">Model:</label>
+            <select id="llmSelect">
+                {% for alias in data_llm_aliases %}
+                {{ render_llm_option(alias, default_report_llm_alias) }}
+                {% endfor %}
+            </select>
+        </div>
+
+        <label id="llmReviewLabel"><input type="checkbox" id="llmReview"> LLM report review</label>
+
+        <div class="popup-buttons">
+            <button id="reviseReportBtn">Revise report</button>
+            <button id="cancelReviseReportBtn">Cancel</button>
+        </div>
+    </div>
+
+    <!-- Libraries -->
+    <link rel="stylesheet" href="https://unpkg.com/tabulator-tables@5.4.3/dist/css/tabulator.min.css">
+    <script type="text/javascript" src="https://unpkg.com/tabulator-tables@5.4.3/dist/js/tabulator.min.js"></script>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.0.0/socket.io.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.29.1/moment.min.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/github.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/languages/python.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/dompurify/3.2.7/purify.min.js" crossorigin="anonymous"
+        referrerpolicy="no-referrer"></script>
+
+    <script>
+        // Only allow ~~double tildes~~ as strikethrough, leave ~single~ alone
+        marked.use({
+            tokenizer: {
+                del(src) {
+                    const match = src.match(/^~~(?=\S)([\s\S]*?\S)~~/);
+                    if (match) {
+                        return {
+                            type: 'del',
+                            raw: match[0],
+                            text: match[1]
+                        };
+                    }
+                }
+            }
+        });
+    </script>
+
+    <!-- server-provided data -->
+    <script id="llm-aliases-data" type="application/json">
+    {{ llm_aliases | tojson | safe }}
+  </script>
+    <script id="llm-model-info" type="application/json">
+    {{ model_info | tojson | safe }}
+  </script>
+    <script id="table-sig-figs-data" type="application/json">
+    {{ table_sig_figs | tojson | safe }}
+  </script>
+    <script id="tabulator-exclude-keywords-data" type="application/json">
+    {{ rounding_exclude_keywords | tojson | safe }}
+  </script>
+    <script id="tabulator-override-include-keywords-data" type="application/json">
+    {{ rounding_override_include_keywords | tojson | safe }}
+  </script>
+
+    <script>
+        const socket = io();
+        const llmAliases = JSON.parse(document.getElementById('llm-aliases-data').textContent);
+        const llmModelsInfo = JSON.parse(document.getElementById('llm-model-info').textContent);
+        const tableSigFigs = JSON.parse(document.getElementById('table-sig-figs-data').textContent);
+        const tabulatorExcludeKeywords = JSON.parse(document.getElementById('tabulator-exclude-keywords-data').textContent);
+        const tabulatorOverrideIncludeKeywords = JSON.parse(document.getElementById('tabulator-override-include-keywords-data').textContent);
+        const anthropicThinkingEnabled = JSON.parse('{{ anthropic_thinking_enable | tojson }}');
+        const defaultReportLlmAlias = "{{ default_report_llm_alias }}";
+        const defaultDataLlmAlias = "{{ default_data_llm_alias }}";
+        const defaultCodeLlmAlias = "{{ default_code_llm_alias }}";
+        const defaultSummaryLlmAlias = "{{ default_summary_llm_alias }}";
+        const processDocxMethod = JSON.parse('{{ process_docx_method | tojson }}');
+        const isDocxProcessingAvailable = Boolean(processDocxMethod);
+        const defaultUserNotes = "No notes provided.";
+        const PROCESS_STATUS_BAR_OWNER = "process";
+        const SHEET_LOAD_STATUS_BAR_OWNER = "sheet-load";
+        let currentAnalysisIndex = -1;
+        let dataStore = [];
+        let isAnalysisInProgress = false;
+        let reportPanelVisiblePreference = null;
+        let currentCallbackFunction = null;
+        let pendingUserNotesIndex = null;
+        let pendingRenameIndex = null;
+        let pendingDeleteIndex = null;
+        let chartDragState = { originalOrder: [], analysisIndex: null, startedFromHandle: false, cancelled: false };
+        let statusBarEntries = new Map();
+        let statusBarRenderSequence = 0;
+        let activeSheetLoadToken = 0;
+
+        function roundToSigFigs(value, sigFigs = tableSigFigs) {
+            if (!Number.isFinite(value) || value === 0) {
+                return value;
+            }
+            const decimals = sigFigs - Math.floor(Math.log10(Math.abs(value))) - 1;
+            const factor = Math.pow(10, decimals);
+            let rounded = Math.round(value * factor) / factor;
+            if (decimals <= 0) {
+                rounded = Math.round(rounded);
+            }
+            return rounded;
+        }
+
+        function shouldRoundColumn(header) {
+            const colName = String(header || '').toLowerCase();
+            const hasOverride = tabulatorOverrideIncludeKeywords.some(kw => colName.includes(kw));
+            const hasExclude = tabulatorExcludeKeywords.some(kw => colName.includes(kw));
+            return !(hasExclude && !hasOverride);
+        }
+
+        function maybeRoundCellValue(value, shouldRound, sigFigs = tableSigFigs) {
+            if (!shouldRound) return value;
+            if (value instanceof Date) return value;
+            if (value === null || value === undefined || value === "") return value;
+            const numericValue = typeof value === 'number' ? value : Number(value);
+            if (!Number.isFinite(numericValue)) return value;
+            return roundToSigFigs(numericValue, sigFigs);
+        }
+
+        /* ---------- LLM params UI (grid-aware) ---------- */
+        function renderModelParams(select) {
+            const group = select.closest('.llm-select');
+            if (!group) return;
+
+            let container = group.querySelector('.llm-params');
+            if (!container) {
+                container = document.createElement('div');
+                container.className = 'llm-params';
+                group.appendChild(container);
+            }
+            container.innerHTML = '';
+
+            const alias = select.value;
+            const params = llmModelsInfo[alias]?.parameters;
+            if (!params) return;
+
+            for (const [name, info] of Object.entries(params)) {
+                if (info.type === 'select') {
+                    const lab = document.createElement('label');
+                    lab.className = 'param-label';
+                    lab.textContent = info.label || (name + ':');
+
+                    const sel = document.createElement('select');
+                    sel.className = 'param-control';
+                    sel.dataset.param = name;
+                    (info.options || []).forEach(opt => {
+                        const o = document.createElement('option');
+                        o.value = opt;
+                        o.textContent = opt;
+                        if (opt === info.default) o.selected = true;
+                        sel.appendChild(o);
+                    });
+
+                    container.appendChild(lab);
+                    container.appendChild(sel);
+                } else if (info.type === 'anthropic-thinking') {
+                    // Row 1: checkbox (left-justified, single line)
+                    const cbLabel = document.createElement('label');
+                    cbLabel.className = 'param-label left-col';
+                    const cb = document.createElement('input');
+                    cb.type = 'checkbox';
+                    cb.dataset.param = name;
+                    cb.id = select.id + '-' + name;
+                    cbLabel.appendChild(cb);
+
+                    if (!anthropicThinkingEnabled) {
+                        cb.disabled = true;
+                        cbLabel.classList.add('disabled');
+                    }
+
+                    const labelText = anthropicThinkingEnabled
+                        ? (info.checkbox_label || 'Enable thinking')
+                        : 'Enable thinking (disabled)';
+                    cbLabel.append(document.createTextNode(' ' + labelText));
+                    container.appendChild(cbLabel);
+
+                    // Row 2: budget label + number input
+                    const numLab = document.createElement('label');
+                    numLab.className = 'param-label';
+                    numLab.textContent = info.number_label || 'Thinking Budget:';
+
+                    const num = document.createElement('input');
+                    num.className = 'param-control';
+                    num.type = 'number';
+                    num.min = info.min ?? 0;
+                    num.max = info.max ?? 32768;
+                    num.value = info.default_budget ?? info.min ?? 0;
+                    num.disabled = true;
+                    num.dataset.param = name + '-budget';
+
+                    if (anthropicThinkingEnabled) {
+                        cb.addEventListener('change', () => { num.disabled = !cb.checked; });
+                    }
+
+                    container.appendChild(numLab);
+                    container.appendChild(num);
+                }
+            }
+        }
+
+        function collectModelParams(select) {
+            const group = select.closest('.llm-select');
+            const container = group?.querySelector('.llm-params');
+            const alias = select.value;
+            const paramsInfo = llmModelsInfo[alias]?.parameters;
+
+            const out = {};
+            if (!paramsInfo || !container) return out;
+
+            for (const [name, info] of Object.entries(paramsInfo)) {
+                if (info.type === 'select') {
+                    out[name] = container.querySelector(`[data-param="${name}"]`)?.value;
+                } else if (info.type === 'anthropic-thinking') {
+                    const enabled = container.querySelector(`input[type="checkbox"][data-param="${name}"]`)?.checked;
+                    if (enabled) {
+                        const budget = parseInt(container.querySelector(`input[type="number"][data-param="${name}-budget"]`)?.value, 10);
+                        out[name] = { type: 'enabled', budget_tokens: budget };
+                    } else {
+                        out[name] = { type: 'disabled' };
+                    }
+                }
+            }
+            return out;
+        }
+
+        function applyLlmBoxes() {
+            const scopes = [
+                document.getElementById('uploadForm'),
+                document.getElementById('addChartPopup'),
+                document.getElementById('reviseChartPopup'),
+                document.getElementById('reviseSummaryPopup'),
+                document.getElementById('reviseReportPopup'),
+            ];
+            scopes.forEach(scope => {
+                if (!scope) return;
+                const groups = Array.from(scope.querySelectorAll('.llm-select'));
+                groups.forEach(g => g.classList.remove('boxed'));
+                if (groups.length >= 2) {
+                    groups.forEach(g => g.classList.add('boxed'));
+                }
+            });
+        }
+
+        function initLlmParamUIs() {
+            document.querySelectorAll('.llm-select select, select#llmSelect').forEach(sel => {
+                const group = sel.closest('.llm-select') || sel.parentElement;
+                let params = group.querySelector('.llm-params');
+                if (!params) {
+                    params = document.createElement('div');
+                    params.className = 'llm-params';
+                    group.appendChild(params);
+                }
+                sel.addEventListener('change', () => renderModelParams(sel));
+                renderModelParams(sel);
+            });
+            applyLlmBoxes();
+        }
+        /* ------------------------------------------------ */
+
+        function setLlmReviewAvailability() {
+            const checkbox = document.getElementById('llmReview');
+            const label = document.getElementById('llmReviewLabel');
+            if (!checkbox || !label) {
+                return;
+            }
+
+            checkbox.disabled = !isDocxProcessingAvailable;
+            if (!isDocxProcessingAvailable) {
+                checkbox.checked = false;
+                label.classList.add('disabled');
+                if (!label.getAttribute('title')) {
+                    label.setAttribute(
+                        'title',
+                        'LLM review requires DOCX processing, which is currently unavailable.'
+                    );
+                }
+            } else {
+                label.classList.remove('disabled');
+                label.removeAttribute('title');
+            }
+        }
+
+        function ensureAnalysisDefaults(analysis) {
+            if (!analysis) return analysis;
+            if (!analysis.user_notes || analysis.user_notes.trim() === '') {
+                analysis.user_notes = defaultUserNotes;
+            }
+            if (!analysis.summary) {
+                analysis.summary = { summary_comments: '', update_needed: true };
+            }
+            if (!analysis.report) {
+                analysis.report = { report_exists: false, update_needed: true };
+            }
+            return analysis;
+        }
+
+        function getStoredReportVisibility(analysis) {
+            if (!analysis?.report?.report_exists) {
+                return false;
+            }
+
+            if (reportPanelVisiblePreference === null) {
+                return true;
+            }
+
+            return reportPanelVisiblePreference;
+        }
+
+        function setStoredReportVisibility(isVisible) {
+            reportPanelVisiblePreference = Boolean(isVisible);
+        }
+
+        function buildReportFileUrl(analysis, fileName, cacheBust = false) {
+            if (!analysis?.data_folder) {
+                return '';
+            }
+
+            const baseUrl = `/${analysis.data_folder}/${fileName}`;
+            if (!cacheBust) {
+                return baseUrl;
+            }
+
+            const separator = baseUrl.includes('?') ? '&' : '?';
+            return `${baseUrl}${separator}t=${Date.now()}`;
+        }
+
+        function buildReportViewerUrl(analysis, cacheBust = false) {
+            const pdfUrl = buildReportFileUrl(analysis, 'report.pdf', cacheBust);
+            if (!pdfUrl) {
+                return '';
+            }
+            return `/report_viewer?file=${encodeURIComponent(pdfUrl)}`;
+        }
+
+        function syncReportViewerState(analysisIndex, { refresh = false } = {}) {
+            if (analysisIndex == null || analysisIndex < 0) {
+                return;
+            }
+
+            const analysis = dataStore[analysisIndex];
+            const toggle = document.querySelector('.show-report-toggle');
+            const toggleLabel = document.querySelector('.report-toggle');
+            const viewerWrap = document.querySelector('.report-viewer-wrap');
+            const viewerFrame = document.querySelector('.report-viewer-frame');
+
+            if (!analysis || !toggle || !toggleLabel || !viewerWrap || !viewerFrame) {
+                return;
+            }
+
+            const pdfMissing = toggle.dataset.fileMissing === 'missing';
+            const canShowReport = !!(analysis.report?.report_exists) && !pdfMissing;
+            const shouldShowReport = canShowReport && toggle.checked;
+
+            toggleLabel.classList.toggle('is-disabled', toggle.disabled);
+            viewerWrap.hidden = !shouldShowReport;
+            viewerWrap.classList.toggle('is-visible', shouldShowReport);
+
+            if (!shouldShowReport) {
+                return;
+            }
+
+            const nextSrc = buildReportViewerUrl(analysis, refresh);
+            if (!nextSrc) {
+                return;
+            }
+
+            if (refresh || viewerFrame.dataset.src !== nextSrc) {
+                viewerFrame.src = nextSrc;
+                viewerFrame.dataset.src = nextSrc;
+            }
+        }
+
+        function toggleReportInline(analysisIndex, isVisible) {
+            const analysis = dataStore[analysisIndex];
+            if (!analysis) {
+                return;
+            }
+
+            setStoredReportVisibility(isVisible);
+            syncReportViewerState(analysisIndex);
+        }
+
+        function closeAllAnalysisDropdowns(except = null) {
+            document.querySelectorAll('#analysisList .dropdown.open').forEach(dropdown => {
+                if (dropdown !== except) {
+                    dropdown.classList.remove('open');
+                }
+            });
+        }
+
+        function initializeAnalysisDropdown(dropdown) {
+            if (!dropdown) return;
+            const toggle = dropdown.querySelector('.three-dots');
+            const menu = dropdown.querySelector('.dropdown-content');
+            if (!toggle || !menu) return;
+
+            toggle.addEventListener('click', (event) => {
+                if (isAnalysisInProgress) {
+                    return;
+                }
+                event.stopPropagation();
+                const isOpen = dropdown.classList.contains('open');
+                closeAllAnalysisDropdowns();
+                if (!isOpen) {
+                    dropdown.classList.add('open');
+                }
+            });
+
+            menu.addEventListener('click', (event) => {
+                event.stopPropagation();
+            });
+
+            menu.querySelectorAll('a').forEach(link => {
+                link.addEventListener('click', () => {
+                    closeAllAnalysisDropdowns();
+                });
+            });
+        }
+
+        document.addEventListener('click', (event) => {
+            if (!event.target.closest('#analysisList .dropdown')) {
+                closeAllAnalysisDropdowns();
+            }
+        });
+
+        function updateAnalysisList(newAnalysis = null) {
+            const analysisList = document.getElementById('analysisList');
+            const startNewAnalysisButton = document.getElementById('startNewAnalysis');
+            analysisList.innerHTML = '';
+
+            startNewAnalysisButton.disabled = isAnalysisInProgress;
+
+            dataStore.slice().reverse().forEach((analysis, index) => {
+                const actualIndex = dataStore.length - 1 - index;
+                const item = document.createElement('div');
+                item.className = 'analysis-item';
+                if (actualIndex === currentAnalysisIndex) {
+                    item.classList.add('selected');
+                }
+                if (isAnalysisInProgress && actualIndex !== currentAnalysisIndex) {
+                    item.classList.add('inactive');
+                }
+                const analysisLabel = `${analysis.name} - ${analysis.date}`;
+                item.innerHTML = `
+                    <div class="analysis-item-text" title="${analysisLabel}">${analysisLabel}</div>
+                    <div class="spinner"></div>
+                    <div class="dropdown">
+                        <span class="three-dots">⋮</span>
+                        <div class="dropdown-content">
+                            <a href="#" onclick="renameAnalysis(${actualIndex})">Rename</a>
+                            <a href="#" onclick="deleteAnalysis(${actualIndex})">Delete</a>
+                        </div>
+                    </div>
+                `;
+                item.onclick = (e) => {
+                    if (!e.target.closest('.dropdown') && !analysis.processing && !isAnalysisInProgress) {
+                        loadAnalysis(actualIndex);
+                    }
+                };
+                analysisList.appendChild(item);
+
+                const dropdown = item.querySelector('.dropdown');
+                initializeAnalysisDropdown(dropdown);
+
+                const threeDots = dropdown.querySelector('.three-dots');
+                if (threeDots) {
+                    threeDots.classList.toggle('disabled', isAnalysisInProgress);
+                }
+
+                if (analysis.processing) {
+                    item.querySelector('.spinner').style.display = 'block';
+                    item.querySelector('.dropdown').style.display = 'none';
+                }
+            });
+
+            if (newAnalysis) {
+                loadAnalysis(dataStore.length - 1);
+            }
+            const reviseButtons = document.querySelectorAll('.revise-chart-btn');
+            reviseButtons.forEach(button => {
+                button.disabled = isAnalysisInProgress;
+            });
+            const deleteButtons = document.querySelectorAll('.delete-chart-btn');
+            deleteButtons.forEach(button => {
+                button.disabled = isAnalysisInProgress;
+            });
+            const addChartButton = document.querySelector('.add-chart-btn');
+            if (addChartButton) {
+                addChartButton.disabled = isAnalysisInProgress;
+            }
+            const reviseSummaryButton = document.querySelector('.revise-summary-btn');
+            if (reviseSummaryButton) {
+                reviseSummaryButton.disabled = isAnalysisInProgress;
+            }
+            const reviseReportButtons = document.querySelectorAll('.revise-report-btn');
+            reviseReportButtons.forEach(btn => btn.disabled = isAnalysisInProgress);
+
+            document.querySelectorAll('.chart-box').forEach(box => {
+                if (isAnalysisInProgress) {
+                    box.removeAttribute('draggable');
+                }
+                const handle = box.querySelector('.drag-handle');
+                if (handle) {
+                    handle.classList.toggle('drag-disabled', isAnalysisInProgress);
+                }
+            });
+            refreshReportButtons(currentAnalysisIndex);
+            console.log('Analysis list updated:', dataStore);
+
+        }
+
+        function switchTab(index) {
+            const tabs = document.querySelectorAll('.tab');
+            const tabContents = document.querySelectorAll('.tab-content');
+
+            tabs.forEach((tab, i) => {
+                if (i === index) {
+                    tab.classList.add('active');
+                    tabContents[i].classList.add('active');
+                } else {
+                    tab.classList.remove('active');
+                    tabContents[i].classList.remove('active');
+                }
+            });
+
+            loadSheetData(index);
+        }
+
+        function loadSheetData(sheetIndex) {
+            const analysis = dataStore[currentAnalysisIndex];
+            if (!analysis || !analysis.description || !analysis.description.sheets) return;
+
+            const filePath = `/${analysis.data_folder}/${analysis.data_file_name}`;
+            const gridContainer = document.querySelector(`.sheet-grid[data-sheet-index="${sheetIndex}"]`);
+            if (!gridContainer) return;
+            const loadToken = ++activeSheetLoadToken;
+            showStatusBar({
+                line1: 'Data loading...',
+                progress: true,
+                owner: SHEET_LOAD_STATUS_BAR_OWNER,
+                priority: 10,
+            });
+
+            fetch(filePath)
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error(`HTTP ${response.status}`);
+                    }
+                    return response.arrayBuffer();
+                })
+                .then(data => {
+                    const workbook = XLSX.read(data, { type: 'array' });
+                    const sheetName = workbook.SheetNames[sheetIndex];
+                    const sheetData = XLSX.utils.sheet_to_json(workbook.Sheets[sheetName], { header: 1, raw: false });
+                    displaySheetGrid(sheetData, sheetIndex, () => {
+                        if (loadToken === activeSheetLoadToken) {
+                            hideStatusBar(SHEET_LOAD_STATUS_BAR_OWNER);
+                        }
+                    });
+                })
+                .catch(error => {
+                    console.error('Error loading sheet data:', error);
+                    if (loadToken === activeSheetLoadToken) {
+                        hideStatusBar(SHEET_LOAD_STATUS_BAR_OWNER);
+                    }
+                });
+        }
+
+        function attachTabulatorWheelPassthrough(container) {
+            const holder = container?.querySelector('.tabulator-tableholder');
+            const mainContent = document.querySelector('.main-content');
+            if (!holder || !mainContent || holder.dataset.wheelPassthroughBound === 'true') return;
+
+            holder.dataset.wheelPassthroughBound = 'true';
+            holder.addEventListener('wheel', (event) => {
+                if (Math.abs(event.deltaY) <= Math.abs(event.deltaX)) {
+                    return;
+                }
+
+                const canScrollVertically = holder.scrollHeight > holder.clientHeight + 1;
+                const isScrollingUp = event.deltaY < 0;
+                const isScrollingDown = event.deltaY > 0;
+                const atTop = holder.scrollTop <= 0;
+                const atBottom = holder.scrollTop + holder.clientHeight >= holder.scrollHeight - 1;
+                const shouldPassThrough =
+                    !canScrollVertically
+                    || (isScrollingUp && atTop)
+                    || (isScrollingDown && atBottom);
+
+                if (!shouldPassThrough) {
+                    return;
+                }
+
+                event.preventDefault();
+                mainContent.scrollTop += event.deltaY;
+            }, { passive: false });
+        }
+
+        function displaySheetGrid(sheetData, sheetIndex, onTableBuilt = null) {
+            const gridContainer = document.querySelector(`.sheet-grid[data-sheet-index="${sheetIndex}"]`);
+            if (!gridContainer) return;
+
+            gridContainer.innerHTML = "";
+            if (sheetData.length < 1) {
+                onTableBuilt?.();
+                return;
+            }
+
+            const headers = sheetData[0];
+            const dataArray = [];
+
+            for (let i = 1; i < sheetData.length; i++) {
+                const row = sheetData[i];
+                let rowObj = {};
+                for (let j = 0; j < headers.length; j++) {
+                    const key = headers[j] || `column${j + 1}`;
+                    rowObj[key] = row[j] !== undefined ? row[j] : "";
+                }
+                dataArray.push(rowObj);
+            }
+
+            const columns = headers.map((header, index) => ({
+                title: header || `Column ${index + 1}`,
+                field: header || `column${index}`,
+                minWidth: 100,
+            }));
+
+            const table = new Tabulator(gridContainer, {
+                data: dataArray,
+                columns: columns,
+                layout: "fitDataFill",
+                virtualDom: true,
+                height: "500px",
+                autoResize: false,
+            });
+            requestAnimationFrame(() => attachTabulatorWheelPassthrough(gridContainer));
+
+            if (onTableBuilt) {
+                let handled = false;
+                const finishTableBuild = () => {
+                    if (handled) return;
+                    handled = true;
+                    onTableBuilt();
+                };
+                table.on('tableBuilt', finishTableBuild);
+                requestAnimationFrame(finishTableBuild);
+            }
+        }
+
+        function switchChartTab(chartIndex, tabIndex) {
+            const container = document.querySelector(
+                `.chart-tab-container[data-chart-index="${chartIndex}"]`);
+            if (!container) return;
+
+            const tabs = container.querySelectorAll('.chart-tab');
+            const contents = container.querySelectorAll('.chart-tab-content');
+
+            tabs.forEach((tab, i) => {
+                const isActive = i === tabIndex;
+
+                tab.classList.toggle('active', isActive);
+                contents[i].classList.toggle('active', isActive);
+
+                if (isActive) {
+                    const tabType = tab.getAttribute('data-tab-type');
+                    if (tabType === 'data') { loadChartData(chartIndex); }
+                    else if (tabType === 'code') { loadChartCode(chartIndex); }
+                }
+            });
+        }
+
+        function loadChartData(chartIndex) {
+            const analysis = dataStore[currentAnalysisIndex];
+            if (!analysis || !analysis.charts_and_comments || !analysis.charts_and_comments[chartIndex]) return;
+
+            const item = analysis.charts_and_comments[chartIndex];
+            const dataFilePath = `/${analysis.data_folder}/${item.data_filename}`;
+
+            fetch(dataFilePath)
+                .then(response => response.arrayBuffer())
+                .then(data => {
+                    const workbook = XLSX.read(data, { type: 'array', codepage: 65001 });
+                    const sheetName = workbook.SheetNames[0];
+                    const sheetData = XLSX.utils.sheet_to_json(workbook.Sheets[sheetName], { header: 1, raw: false, defval: '' });
+                    displayChartData(chartIndex, sheetData);
+                })
+                .catch(error => console.error('Error loading chart data:', error));
+        }
+
+        function displayChartData(chartIndex, sheetData) {
+            const tableContainer = document.querySelector(`.chart-data-table[data-chart-index="${chartIndex}"]`);
+            if (!tableContainer) return;
+
+            tableContainer.innerHTML = "";
+            if (sheetData.length < 1) return;
+
+            const headers = sheetData[0];
+            const dataArray = [];
+            const columnsToRound = headers.map(header => shouldRoundColumn(header));
+
+            for (let i = 1; i < sheetData.length; i++) {
+                const row = sheetData[i];
+                let rowObj = {};
+                for (let j = 0; j < headers.length; j++) {
+                    const key = headers[j] || `column${j + 1}`;
+                    const rawValue = row[j] !== undefined ? row[j] : "";
+                    rowObj[key] = maybeRoundCellValue(rawValue, columnsToRound[j]);
+                }
+                dataArray.push(rowObj);
+            }
+
+            const columns = headers.map((header, index) => ({
+                title: header || `Column ${index + 1}`,
+                field: header || `column${index + 1}`,
+                minWidth: 100,
+            }));
+
+            new Tabulator(tableContainer, {
+                data: dataArray,
+                columns: columns,
+                layout: "fitData",
+                virtualDom: true,
+                height: "300px",
+                autoResize: false,
+            });
+            requestAnimationFrame(() => attachTabulatorWheelPassthrough(tableContainer));
+        }
+
+        function loadChartCode(chartIndex) {
+            const analysis = dataStore[currentAnalysisIndex];
+            if (!analysis) return;
+
+            const item = analysis.charts_and_comments[chartIndex];
+            if (!item.code_filename) return;
+
+            const codeBlock = document.querySelector(
+                `pre.chart-code[data-chart-index="${chartIndex}"]`
+            );
+            if (!codeBlock) return;
+            if (codeBlock.dataset.loaded) return;
+
+            fetch(`/get_code/${currentAnalysisIndex}/${chartIndex}`)
+                .then(r => r.json())
+                .then(d => {
+                    codeBlock.textContent = d.code || 'No source code found.';
+                    hljs.highlightElement(codeBlock);
+                    codeBlock.dataset.loaded = "true";
+                })
+                .catch(err => {
+                    codeBlock.textContent = 'Error loading code: ' + err;
+                });
+        }
+
+        function switchReportTab(tabIndex) {
+            const container = document.querySelector('.report-tab-container');
+            if (!container) return;
+
+            const tabs = container.querySelectorAll('.chart-tab');
+            const contents = container.querySelectorAll('.chart-tab-content');
+
+            tabs.forEach((tab, i) => {
+                const isActive = i === tabIndex;
+                tab.classList.toggle('active', isActive);
+                contents[i].classList.toggle('active', isActive);
+            });
+
+            if (tabIndex === 1) {
+                loadReportCodeIntoPane();
+            }
+        }
+
+        function loadReportCodeIntoPane() {
+            const codeBlock = document.querySelector('pre.report-code-block code');
+            if (!codeBlock) return;
+            if (codeBlock.dataset.loaded) return;
+
+            const analysis = dataStore[currentAnalysisIndex];
+            if (!analysis?.report?.report_exists) {
+                codeBlock.textContent = 'No report source code found.';
+                codeBlock.dataset.loaded = 'true';
+                return;
+            }
+
+            fetch(buildReportFileUrl(analysis, 'report.py', true))
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error(`HTTP ${response.status}`);
+                    }
+                    return response.text();
+                })
+                .then(code => {
+                    codeBlock.textContent = code || 'No report source code found.';
+                    hljs.highlightElement(codeBlock);
+                    codeBlock.dataset.loaded = 'true';
+                })
+                .catch(() => {
+                    codeBlock.textContent = 'Failed to load report.py.';
+                    codeBlock.dataset.loaded = 'true';
+                });
+        }
+
+        function loadAnalysis(index) {
+            if (index === currentAnalysisIndex) {
+                return;
+            }
+
+            const mainContent = document.querySelector('.main-content');
+            if (mainContent) {
+                mainContent.scrollTop = 0;
+            }
+
+            currentAnalysisIndex = index;
+            document.getElementById('analysisForm').style.display = 'none';
+            document.getElementById('analysisContent').style.display = 'block';
+            displayAnalysisResults(dataStore[index]);
+            updateAnalysisList();
+        }
+
+        // function sanitizeHTML(unsafeHTML) {
+        //     return DOMPurify.sanitize(unsafeHTML, {
+        //         ADD_TAGS: ['img'],
+        //         KEEP_CONTENT: false
+        //     });
+        // }
+
+        function sanitizeHTML(unsafeHTML) {
+            return DOMPurify.sanitize(unsafeHTML, {
+                ADD_TAGS: ['img'],               // keep your images
+                ADD_ATTR: ['alt', 'style', 'src'],
+                KEEP_CONTENT: false,
+                // Disallow absolute/protocol-relative URIs in attributes like href/src
+                ALLOWED_URI_REGEXP: /^(?!([a-z][a-z0-9+.-]*:)?\/\/)/i
+            });
+        }
+        // Strip risky CSS from inline style attributes anywhere
+        DOMPurify.addHook('afterSanitizeAttributes', (node) => {
+            if (!node.getAttribute) return;
+
+            // Enforce local-only <img src> (as discussed earlier)
+            if (node.tagName && node.tagName.toLowerCase() === 'img') {
+                const src = node.getAttribute('src') || '';
+                const looksExternal = /:\/\//.test(src) || /^[a-z][a-z0-9+.-]*:/i.test(src);
+                const isProtocolRelative = src.startsWith('//');
+                const isAbsolutePath = src.startsWith('/');
+                const hasTraversal = src.includes('..') || src.includes('\\');
+                const isLocalFilename = /^[\w\-./]+\.(png|jpe?g|gif|webp|svg)$/i.test(src);
+                if (!src || looksExternal || isProtocolRelative || isAbsolutePath || hasTraversal || !isLocalFilename) {
+                    node.removeAttribute('src');
+                }
+            }
+
+            // Security-only CSS scrub: remove dangerous constructs in inline styles
+            const style = node.getAttribute('style');
+            if (style) {
+                const s = style.toLowerCase();
+                const hasRisk =
+                    s.includes('url(') ||         // external loads / beacons
+                    s.includes('@import') ||      // external stylesheet loads
+                    s.includes('expression(') ||  // legacy JS execution
+                    s.includes('behavior(') ||    // legacy IE
+                    s.includes('-moz-binding') || // legacy Firefox
+                    s.includes('javascript:');    // belt-and-braces
+
+                if (hasRisk) node.removeAttribute('style');
+            }
+        });
+
+        function stripCodeFence(str) {
+            const match = str.match(/^```(?:\w+)?\s*([\s\S]*?)\s*```$/);
+            return match ? match[1] : str;
+        }
+
+        function displayAnalysisResults(analysis) {
+            analysis = ensureAnalysisDefaults(analysis);
+            const descriptionContainer = document.getElementById('analysisDescription');
+            const summaryContainer = document.getElementById('analysisSummary');
+            const resultsContainer = document.getElementById('analysisResults');
+            const analysisTitle = document.getElementById('analysisTitle');
+            descriptionContainer.innerHTML = '';
+            summaryContainer.innerHTML = '';
+            resultsContainer.innerHTML = '';
+
+            if (!analysis) {
+                console.log('No analysis data to display');
+                return;
+            }
+
+            analysisTitle.textContent = analysis.name;
+            analysisTitle.title = `Folder: ${analysis.data_folder}`;
+            analysisTitle.style.cursor = "pointer";
+            analysisTitle.onclick = () => {
+                socket.emit("open_folder", { folder: analysis.data_folder });
+            };
+            const basicInfo = document.createElement('div');
+            basicInfo.innerHTML = `
+                <p><strong>Date started:</strong> ${analysis.date}</p>
+                <p><strong>File:</strong> ${analysis.data_file_name}</p>
+                <p class="info-row">
+                    <strong>Instructions:</strong>
+                    <span class="info-text">
+                        ${formatString(analysis.instructions || "No user instructions given.")}
+                    </span>
+                </p>
+                <p class="info-row user-notes-row">
+                    <strong>User notes (click to edit):</strong>
+                    <span class="info-text user-notes-text" title="Click to edit">
+                        ${formatString(analysis.user_notes || defaultUserNotes)}
+                    </span>
+                </p>
+            `;
+            const notesElement = basicInfo.querySelector('.user-notes-text');
+            if (notesElement) {
+                notesElement.addEventListener('click', () => openUserNotesPopup(currentAnalysisIndex));
+            }
+            descriptionContainer.appendChild(basicInfo);
+
+            if (analysis.description) {
+                const description = document.createElement('div');
+                description.className = 'item-box';
+                description.innerHTML = `
+            <h3>Data Description</h3>
+            <p>${analysis.description.data_description || ''}</p>
+        `;
+
+                if (analysis.description && analysis.description.sheets && analysis.description.sheets.length > 0) {
+                    const tabsContainer = document.createElement('div');
+                    tabsContainer.className = 'tabs';
+                    const tabContentContainer = document.createElement('div');
+
+                    analysis.description.sheets.forEach((sheet, index) => {
+                        const tab = document.createElement('div');
+                        tab.className = 'tab';
+                        tab.textContent = sheet.sheet_name;
+                        tab.onclick = () => switchTab(index);
+                        tabsContainer.appendChild(tab);
+
+                        const tabContent = document.createElement('div');
+                        tabContent.className = 'tab-content';
+                        tabContent.innerHTML = `
+                        <div class="sheet-container">
+                            <div class="sheet-info" data-sheet-index="${index}">
+                                <p><strong>Headings:</strong> ${sheet.headings.join(', ')}</p>
+                                <p><strong>Time Period:</strong> ${sheet.time_start} to ${sheet.time_end}</p>
+                                <p><strong>Time Step:</strong> ${sheet.time_step}</p>
+                                <p><strong>Time Format:</strong> ${sheet.time_format}</p>
+                            </div>
+                            <div class="sheet-grid" data-sheet-index="${index}"></div>
+                        </div>
+                    `;
+                        tabContentContainer.appendChild(tabContent);
+                    });
+
+                    description.appendChild(tabsContainer);
+                    description.appendChild(tabContentContainer);
+                    setTimeout(() => switchTab(0), 0);
+                }
+
+                descriptionContainer.appendChild(description);
+            }
+
+            const reportInfo = analysis.report || { report_exists: false, update_needed: true };
+            const reportBox = document.createElement('div');
+            reportBox.className = 'item-box';
+            const reportStatusText = reportInfo.update_needed ? 'Update needed' : '';
+            const shouldShowInlineReport = reportInfo.report_exists && getStoredReportVisibility(analysis);
+            const reportViewerUrl = shouldShowInlineReport ? buildReportViewerUrl(analysis, true) : '';
+
+            reportBox.innerHTML = `
+            <div class="section-header">
+                <h3>Report</h3>
+                <span class="report-status status-text">${reportStatusText}</span>
+            </div>
+            <div class="report-buttons">
+                <button class="report-btn revise-report-btn"
+                        onclick="showReviseReportPopup(${currentAnalysisIndex}, ${reportInfo.report_exists})"
+                        ${isAnalysisInProgress ? 'disabled' : ''}>
+                    ${reportInfo.report_exists ? 'Revise&nbsp;Report' : 'Generate&nbsp;Report'}
+                </button>
+
+                <button class="report-btn dl-docx-btn"
+                        onclick="downloadReport(${currentAnalysisIndex},'docx')"
+                        ${reportInfo.report_exists ? '' : 'disabled'}>Download&nbsp;DOCX</button>
+
+                <button class="report-btn dl-pdf-btn"
+                        onclick="downloadReport(${currentAnalysisIndex},'pdf')"
+                        ${reportInfo.report_exists ? '' : 'disabled'}>Download&nbsp;PDF</button>
+
+                <label class="report-toggle ${reportInfo.report_exists ? '' : 'is-disabled'}">
+                    <span class="report-toggle-label">Show report / code</span>
+                    <span class="report-switch">
+                        <input type="checkbox"
+                               class="show-report-toggle"
+                               onchange="toggleReportInline(${currentAnalysisIndex}, this.checked)"
+                               ${shouldShowInlineReport ? 'checked' : ''}
+                               ${reportInfo.report_exists ? '' : 'disabled'}>
+                        <span class="report-slider"></span>
+                    </span>
+                </label>
+            </div>
+            <div class="report-viewer-wrap ${shouldShowInlineReport ? 'is-visible' : ''}" ${shouldShowInlineReport ? '' : 'hidden'}>
+                <div class="report-tab-container">
+                    <div class="chart-tabs">
+                        <div class="chart-tab active" onclick="switchReportTab(0)">Report</div>
+                        <div class="chart-tab" onclick="switchReportTab(1)">Python&nbsp;Code</div>
+                    </div>
+                    <div class="chart-tab-content active">
+                        <iframe class="report-viewer-frame"
+                                title="Inline PDF report preview"
+                                loading="lazy"
+                                data-src="${reportViewerUrl}"
+                                ${reportViewerUrl ? `src="${reportViewerUrl}"` : ''}></iframe>
+                    </div>
+                    <div class="chart-tab-content code-pane report-code-pane">
+                        <pre class="chart-code report-code-block"><code class="language-python">Loading…</code></pre>
+                    </div>
+                </div>
+            </div>`;
+            descriptionContainer.appendChild(reportBox);
+
+            const summary = document.createElement('div');
+            summary.className = 'item-box summary-container';
+
+            const summaryInfo = analysis.summary;
+            const raw0 = (summaryInfo.summary_comments ?? '').trim();
+            let rendered;
+
+            if (raw0) {
+                const raw = stripCodeFence(raw0);
+                const looksLikeHTML = /^<[a-zA-Z!/]|&lt;/.test(raw);
+
+                if (looksLikeHTML) {
+                    rendered = sanitizeHTML(raw);
+                } else {
+                    rendered = marked.parse(raw.replace(/\\n/g, '\n'));
+                }
+            } else {
+                rendered = '<em>Summary not generated</em>';
+            }
+
+            const summaryStatusText = summaryInfo.update_needed ? 'Update needed' : '';
+
+            summary.innerHTML = `
+                <div class="section-header">
+                    <h3>Summary of Findings</h3>
+                    <span class="summary-status status-text">${summaryStatusText}</span>
+                </div>
+                <div class="summary-actions">
+                    <button class="revise-summary-btn"
+                            onclick="showReviseSummaryPopup(${currentAnalysisIndex})"
+                            ${isAnalysisInProgress ? 'disabled' : ''}>
+                        Revise/refresh summary
+                    </button>
+                </div>
+                <div class="summary-body">${rendered}</div>
+            `;
+            summaryContainer.appendChild(summary);
+
+            if (raw0) {
+                summary.querySelectorAll('img').forEach(img => {
+                    const src = img.getAttribute('src');
+                    if (src && !/^https?:\/\//i.test(src) && !src.startsWith('/')) {
+                        img.src = `/${analysis.data_folder}/${src}`;
+                    }
+                });
+            }
+
+            if (analysis.charts_and_comments && analysis.charts_and_comments.length > 0) {
+                analysis.charts_and_comments.forEach((item, index) => {
+                    const chartBox = document.createElement('div');
+                    chartBox.className = 'item-box chart-box';
+                    chartBox.dataset.chartIndex = index;
+
+                    let chartBoxHTML = `
+                        <div class="chart-item-header">
+                            <span class="drag-handle" title="Drag to reorder" aria-label="Reorder analysis item">☰</span>
+                            <h3>${item.title}</h3>
+                            <div class="chart-buttons">
+                                <button class="delete-chart-btn" onclick="confirmDeleteChart(${currentAnalysisIndex}, ${index})" ${isAnalysisInProgress ? 'disabled' : ''}>
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                                        stroke-linecap="round" stroke-linejoin="round">
+                                        <polyline points="3 6 5 6 21 6"></polyline>
+                                        <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+                                        <line x1="10" y1="11" x2="10" y2="17"></line>
+                                        <line x1="14" y1="11" x2="14" y2="17"></line>
+                                    </svg>
+                                </button>
+                                <button class="revise-chart-btn" onclick="showReviseChartPopup(${currentAnalysisIndex}, ${index})" ${isAnalysisInProgress ? 'disabled' : ''}>Revise</button>
+                            </div>
+                        </div>
+                    `;
+
+                    let itemContentHTML = '';
+
+                    const hasChartTab = item.chart_filename != null;
+                    const hasChartDataTab = item.data_filename != null;
+                    const hasCodeTab = item.code_filename != null;
+
+                    if (hasChartTab || hasChartDataTab || hasCodeTab) {
+                        let tabsHTML = '';
+                        let tabContentsHTML = '';
+                        let tabIndex = 0;
+                        if (hasChartTab) {
+                            tabsHTML += `<div class="chart-tab active" data-tab-type="chart" onclick="switchChartTab(${index}, ${tabIndex})">Chart</div>`;
+                            let dataAttribute = "";
+                            if (item.chart_html_filename) {
+                                dataAttribute = `data-chart-html="/${analysis.data_folder}/${item.chart_html_filename}"`;
+                            }
+                            tabContentsHTML += `
+                                <div class="chart-tab-content active">
+                                    <img src="/${analysis.data_folder}/${item.chart_filename}" alt="Chart" onclick="showChartOverlay(this)" ${dataAttribute} title="Click to open interactive chart">
+                                </div>
+                            `;
+                            tabIndex++;
+                        }
+
+                        if (hasChartDataTab) {
+                            const activeClass = hasChartTab ? '' : ' active';
+                            tabsHTML += `<div class="chart-tab${activeClass}" data-tab-type="data" onclick="switchChartTab(${index}, ${tabIndex})">Data</div>`;
+                            tabContentsHTML += `
+                                <div class="chart-tab-content${activeClass}">
+                                    <div class="chart-data-table" data-chart-index="${index}"></div>
+                                </div>
+                            `;
+                            tabIndex++;
+                            if (!hasChartTab) {
+                                setTimeout(() => {
+                                    loadChartData(index);
+                                }, 0);
+                            }
+                        }
+
+                        if (hasCodeTab) {
+                            const activeClass = (!hasChartTab && !hasChartDataTab) ? ' active' : '';
+                            tabsHTML += `<div class="chart-tab${activeClass}"
+                                            data-tab-type="code"
+                                            onclick="switchChartTab(${index}, ${tabIndex})">
+                                            Python&nbsp;Code
+                                        </div>`;
+                            tabContentsHTML += `
+                                <div class="chart-tab-content code-pane${activeClass}">
+                                    <pre class="chart-code" data-chart-index="${index}">
+                                        <code class="language-python">Loading…</code>
+                                    </pre>
+                                </div>`;
+                            tabIndex++;
+                        }
+
+                        itemContentHTML = `
+                            <div class="item-content">
+                                <div class="item chart-tab-container" data-chart-index="${index}">
+                                    <div class="chart-tabs">
+                                        ${tabsHTML}
+                                    </div>
+                                    ${tabContentsHTML}
+                                </div>
+                                <div class="item">
+                                    <div>${marked.parse(item.analysis_comments.replace(/\\n/g, '\n'))}</div>
+                                </div>
+                            </div>
+                        `;
+                    } else {
+                        itemContentHTML = `
+                            <div class="item-content single-item">
+                                <div class="item">
+                                    <div>${marked.parse(item.analysis_comments.replace(/\\n/g, '\n'))}</div>
+                                </div>
+                            </div>
+                        `;
+                    }
+
+                    chartBoxHTML += itemContentHTML;
+                    chartBox.innerHTML = chartBoxHTML;
+                    resultsContainer.appendChild(chartBox);
+                });
+
+                initializeChartDragAndDrop();
+
+            }
+            const addChartButton = document.createElement('button');
+            addChartButton.textContent = 'Add New Analysis Component';
+            addChartButton.className = 'add-chart-btn';
+            addChartButton.disabled = isAnalysisInProgress;
+            addChartButton.onclick = () => showAddChartPopup(currentAnalysisIndex);
+            resultsContainer.appendChild(addChartButton);
+
+            console.log('Analysis results displayed:', analysis);
+            refreshReportButtons(currentAnalysisIndex);
+        }
+
+        function initializeChartDragAndDrop() {
+            const resultsContainer = document.getElementById('analysisResults');
+            if (!resultsContainer) return;
+
+            resultsContainer.removeEventListener('dragover', handleChartDragOver);
+            resultsContainer.removeEventListener('drop', handleChartDrop);
+            resultsContainer.addEventListener('dragover', handleChartDragOver);
+            resultsContainer.addEventListener('drop', handleChartDrop);
+
+            const chartBoxes = resultsContainer.querySelectorAll('.chart-box');
+            chartBoxes.forEach(box => {
+                box.removeEventListener('dragstart', handleChartDragStart);
+                box.removeEventListener('dragend', handleChartDragEnd);
+                box.addEventListener('dragstart', handleChartDragStart);
+                box.addEventListener('dragend', handleChartDragEnd);
+
+                if (isAnalysisInProgress) {
+                    box.removeAttribute('draggable');
+                }
+
+                const handle = box.querySelector('.drag-handle');
+                if (handle) {
+                    handle.classList.toggle('drag-disabled', isAnalysisInProgress);
+                    const engageHandle = () => {
+                        if (isAnalysisInProgress) {
+                            return;
+                        }
+                        chartDragState.startedFromHandle = true;
+                        box.setAttribute('draggable', 'true');
+                    };
+
+                    const releaseHandle = () => {
+                        chartDragState.startedFromHandle = false;
+                    };
+
+                    ['mousedown', 'touchstart'].forEach(eventName => {
+                        handle.addEventListener(eventName, engageHandle);
+                    });
+
+                    ['mouseup', 'mouseleave', 'touchend', 'touchcancel'].forEach(eventName => {
+                        handle.addEventListener(eventName, releaseHandle);
+                    });
+                }
+            });
+
+            chartDragState.originalOrder = Array.from(chartBoxes).map(box => Number(box.dataset.chartIndex));
+            chartDragState.originalOrder = chartDragState.originalOrder.filter(idx => !Number.isNaN(idx));
+            chartDragState.analysisIndex = currentAnalysisIndex;
+            chartDragState.cancelled = false;
+        }
+
+        function handleChartDragStart(event) {
+            if (isAnalysisInProgress) {
+                event.preventDefault();
+                return;
+            }
+
+            if (!chartDragState.startedFromHandle) {
+                event.preventDefault();
+                return;
+            }
+
+            const box = event.currentTarget;
+            box.classList.add('dragging');
+
+            chartDragState.startedFromHandle = false;
+            chartDragState.cancelled = false;
+
+            const resultsContainer = document.getElementById('analysisResults');
+            if (resultsContainer) {
+                const currentOrder = Array.from(resultsContainer.querySelectorAll('.chart-box')).map(el => Number(el.dataset.chartIndex));
+                chartDragState.originalOrder = currentOrder.filter(idx => !Number.isNaN(idx));
+                chartDragState.analysisIndex = currentAnalysisIndex;
+            }
+
+            if (event.dataTransfer) {
+                event.dataTransfer.effectAllowed = 'move';
+                event.dataTransfer.setData('text/plain', box.dataset.chartIndex || '');
+            }
+        }
+
+        function handleChartDragOver(event) {
+            const resultsContainer = event.currentTarget;
+            const dragging = resultsContainer.querySelector('.chart-box.dragging');
+            if (!dragging) {
+                return;
+            }
+
+            event.preventDefault();
+            if (event.dataTransfer) {
+                event.dataTransfer.dropEffect = 'move';
+            }
+
+            autoScrollDuringDrag(event);
+
+            const afterElement = getDragAfterElement(resultsContainer, event.clientY);
+            const addButton = resultsContainer.querySelector('.add-chart-btn');
+
+            if (afterElement == null) {
+                if (addButton) {
+                    resultsContainer.insertBefore(dragging, addButton);
+                } else {
+                    resultsContainer.appendChild(dragging);
+                }
+            } else {
+                resultsContainer.insertBefore(dragging, afterElement);
+            }
+        }
+
+        function handleChartDrop(event) {
+            event.preventDefault();
+        }
+
+        function handleChartDragEnd(event) {
+            const box = event.currentTarget;
+            const resultsContainer = document.getElementById('analysisResults');
+            const cancelledByBrowser = event.dataTransfer && event.dataTransfer.dropEffect === 'none';
+
+            box.classList.remove('dragging');
+            box.removeAttribute('draggable');
+
+            chartDragState.startedFromHandle = false;
+
+            if (chartDragState.cancelled || cancelledByBrowser) {
+                if (resultsContainer) {
+                    restoreOriginalChartOrder(resultsContainer);
+                }
+                chartDragState.cancelled = false;
+                return;
+            }
+
+            if (!resultsContainer || chartDragState.analysisIndex !== currentAnalysisIndex) {
+                return;
+            }
+
+            const newOrder = Array.from(resultsContainer.querySelectorAll('.chart-box')).map(box => Number(box.dataset.chartIndex));
+            if (!chartDragState.originalOrder.length) {
+                return;
+            }
+
+            const hasChanged = newOrder.some((val, idx) => val !== chartDragState.originalOrder[idx]);
+            if (!hasChanged) {
+                return;
+            }
+
+            persistChartOrder(newOrder);
+        }
+
+        function restoreOriginalChartOrder(resultsContainer) {
+            if (!resultsContainer || chartDragState.analysisIndex !== currentAnalysisIndex) {
+                return false;
+            }
+
+            if (!Array.isArray(chartDragState.originalOrder) || !chartDragState.originalOrder.length) {
+                return false;
+            }
+
+            const addButton = resultsContainer.querySelector('.add-chart-btn');
+            chartDragState.originalOrder.forEach(idx => {
+                const box = resultsContainer.querySelector(`.chart-box[data-chart-index="${idx}"]`);
+                if (!box) {
+                    return;
+                }
+                if (addButton) {
+                    resultsContainer.insertBefore(box, addButton);
+                } else {
+                    resultsContainer.appendChild(box);
+                }
+            });
+
+            return true;
+        }
+
+        function cancelActiveChartDrag() {
+            const resultsContainer = document.getElementById('analysisResults');
+            if (!resultsContainer || chartDragState.analysisIndex !== currentAnalysisIndex) {
+                return false;
+            }
+
+            const dragging = resultsContainer.querySelector('.chart-box.dragging');
+            if (!dragging) {
+                return false;
+            }
+
+            chartDragState.cancelled = true;
+            dragging.classList.remove('dragging');
+            dragging.removeAttribute('draggable');
+            chartDragState.startedFromHandle = false;
+
+            return restoreOriginalChartOrder(resultsContainer);
+        }
+
+        function getDragAfterElement(container, yPosition) {
+            const draggableElements = [...container.querySelectorAll('.chart-box:not(.dragging)')];
+
+            return draggableElements.reduce((closest, child) => {
+                const box = child.getBoundingClientRect();
+                const offset = yPosition - box.top - box.height / 2;
+                if (offset < 0 && offset > closest.offset) {
+                    return { offset, element: child };
+                }
+                return closest;
+            }, { offset: Number.NEGATIVE_INFINITY, element: null }).element;
+        }
+
+        function autoScrollDuringDrag(event) {
+            const scrollContainer = document.querySelector('.main-content');
+            if (!scrollContainer) return;
+
+            const rect = scrollContainer.getBoundingClientRect();
+            const threshold = 60;
+            const scrollSpeed = 18;
+
+            if (event.clientY - rect.top < threshold) {
+                scrollContainer.scrollTop -= scrollSpeed;
+            } else if (rect.bottom - event.clientY < threshold) {
+                scrollContainer.scrollTop += scrollSpeed;
+            }
+        }
+
+        function handleChartKeyDown(event) {
+            if (event.key === 'Escape') {
+                const cancelled = cancelActiveChartDrag();
+                if (cancelled) {
+                    event.preventDefault();
+                    event.stopPropagation();
+                }
+            }
+        }
+
+        function persistChartOrder(order) {
+            const analysis = dataStore[currentAnalysisIndex];
+            if (!analysis || !analysis.charts_and_comments) {
+                return;
+            }
+
+            const originalCharts = [...analysis.charts_and_comments];
+            const reorderedCharts = order.map(idx => originalCharts[idx]).filter(item => item !== undefined);
+
+            if (reorderedCharts.length !== originalCharts.length) {
+                console.warn('Reorder failed: mismatched chart count.');
+                return;
+            }
+
+            analysis.charts_and_comments = reorderedCharts;
+
+            fetch('/reorder_analysis_items', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ analysis_index: currentAnalysisIndex, order })
+            })
+                .then(response => response.json())
+                .then(data => {
+                    console.log('Reorder response:', data);
+                    if (currentAnalysisIndex === chartDragState.analysisIndex) {
+                        displayAnalysisResults(analysis);
+                    }
+                })
+                .catch(error => {
+                    console.error('Error saving chart order:', error);
+                    displayAnalysisResults(analysis);
+                });
+        }
+
+        function checkFileExists(url) {
+            const cacheBuster = `_=${Date.now()}`;
+            const separator = url.includes('?') ? '&' : '?';
+            const requestUrl = `${url}${separator}${cacheBuster}`;
+
+            const handleHeadResponse = (response) => {
+                if (response.ok) {
+                    return true;
+                }
+                if (response.status === 405) {
+                    return fetch(requestUrl, {
+                        method: 'GET',
+                        headers: { 'Range': 'bytes=0-0' },
+                        cache: 'no-store'
+                    }).then(r => r.ok).catch(() => false);
+                }
+                return false;
+            };
+
+            return fetch(requestUrl, { method: 'HEAD', cache: 'no-store' })
+                .then(handleHeadResponse)
+                .catch(error => {
+                    console.warn('Error checking file existence:', error);
+                    return false;
+                });
+        }
+
+        function refreshReportButtons(analysisIndex) {
+            const reportToggle = document.querySelector('.show-report-toggle');
+            const reportToggleLabel = document.querySelector('.report-toggle');
+            const docxButtons = document.querySelectorAll('.dl-docx-btn');
+            const pdfButtons = document.querySelectorAll('.dl-pdf-btn');
+
+            const disableButtons = (buttons, disabled) => {
+                buttons.forEach(btn => {
+                    btn.disabled = disabled;
+                    if (disabled) {
+                        btn.dataset.fileMissing = '';
+                    }
+                });
+            };
+
+            if (analysisIndex == null || analysisIndex < 0) {
+                disableButtons(docxButtons, true);
+                disableButtons(pdfButtons, true);
+                if (reportToggle) {
+                    reportToggle.disabled = true;
+                    reportToggle.checked = false;
+                    reportToggle.dataset.fileMissing = 'missing';
+                }
+                if (reportToggleLabel) {
+                    reportToggleLabel.classList.add('is-disabled');
+                }
+                return;
+            }
+
+            const analysis = dataStore[analysisIndex];
+            const hasReport = !!(analysis && analysis.report && analysis.report.report_exists);
+            const baseDisabled = isAnalysisInProgress || !hasReport;
+
+            disableButtons(docxButtons, baseDisabled);
+            disableButtons(pdfButtons, baseDisabled);
+            if (reportToggle) {
+                reportToggle.disabled = baseDisabled;
+                if (!hasReport) {
+                    reportToggle.checked = false;
+                } else {
+                    reportToggle.checked = getStoredReportVisibility(analysis);
+                }
+            }
+            if (reportToggleLabel) {
+                reportToggleLabel.classList.toggle('is-disabled', !reportToggle || reportToggle.disabled);
+            }
+            syncReportViewerState(analysisIndex);
+
+            if (baseDisabled) {
+                return;
+            }
+
+            const updateButtonsForFile = (buttons, url, onUpdate = null) => {
+                if (!buttons.length) {
+                    onUpdate?.({ exists: true, shouldDisable: false });
+                    return;
+                }
+                checkFileExists(url)
+                    .then(exists => {
+                        if (analysisIndex !== currentAnalysisIndex) {
+                            return;
+                        }
+                        const latestAnalysis = dataStore[analysisIndex];
+                        const stillHasReport = !!(latestAnalysis && latestAnalysis.report && latestAnalysis.report.report_exists);
+                        const shouldDisable = isAnalysisInProgress || !stillHasReport || !exists;
+                        buttons.forEach(btn => {
+                            btn.disabled = shouldDisable;
+                            btn.dataset.fileMissing = exists ? '' : 'missing';
+                        });
+                        onUpdate?.({ exists, shouldDisable });
+                    })
+                    .catch(error => {
+                        console.warn('Error verifying report asset:', error);
+                        buttons.forEach(btn => {
+                            btn.disabled = true;
+                            btn.dataset.fileMissing = 'missing';
+                        });
+                        onUpdate?.({ exists: false, shouldDisable: true });
+                    });
+            };
+
+            updateButtonsForFile(Array.from(pdfButtons), buildReportFileUrl(analysis, 'report.pdf'), ({ exists, shouldDisable }) => {
+                if (!reportToggle) {
+                    return;
+                }
+
+                reportToggle.disabled = shouldDisable;
+                reportToggle.dataset.fileMissing = exists ? '' : 'missing';
+                if (!exists) {
+                    reportToggle.checked = false;
+                } else {
+                    reportToggle.checked = getStoredReportVisibility(analysis);
+                }
+
+                if (reportToggleLabel) {
+                    reportToggleLabel.classList.toggle('is-disabled', reportToggle.disabled);
+                }
+
+                syncReportViewerState(analysisIndex, { refresh: exists && reportToggle.checked });
+            });
+
+            updateButtonsForFile(Array.from(docxButtons), buildReportFileUrl(analysis, 'report.docx'));
+        }
+
+        function showChartOverlay(imgElement) {
+            const overlay = document.getElementById('overlay');
+            const overlayImg = document.getElementById('overlayImg');
+            const overlayTitle = document.getElementById('overlayTitle');
+            const titleElement = imgElement.closest('.item-box')?.querySelector('h3');
+            if (titleElement) {
+                overlayTitle.textContent = titleElement.textContent;
+                overlayTitle.style.display = 'block';
+            } else {
+                overlayTitle.textContent = '';
+                overlayTitle.style.display = 'none';
+            }
+            const chartHtmlUrl = imgElement.getAttribute('data-chart-html');
+            if (chartHtmlUrl) {
+                overlayImg.style.display = 'none';
+                let iframe = document.getElementById('overlayIframe');
+                if (!iframe) {
+                    iframe = document.createElement('iframe');
+                    iframe.id = 'overlayIframe';
+                    iframe.style.position = 'absolute';
+                    iframe.style.top = '40px';
+                    iframe.style.left = '0';
+                    iframe.style.width = '100%';
+                    iframe.style.height = 'calc(100% - 40px)';
+                    iframe.style.border = 'none';
+                    overlay.appendChild(iframe);
+                }
+                iframe.src = chartHtmlUrl;
+            } else {
+                const iframe = document.getElementById('overlayIframe');
+                if (iframe) {
+                    iframe.remove();
+                }
+                overlayImg.src = imgElement.src;
+                overlayImg.style.display = 'block';
+            }
+            overlay.style.display = 'flex';
+        }
+
+        function hideOverlay() {
+            const overlay = document.getElementById('overlay');
+            const iframe = document.getElementById('overlayIframe');
+            if (iframe) {
+                iframe.remove();
+            }
+            overlay.style.display = 'none';
+            const overlayTitle = document.getElementById('overlayTitle');
+            overlayTitle.textContent = '';
+            overlayTitle.style.display = 'none';
+        }
+
+        document.addEventListener('keydown', function (e) {
+            if (e.key === "Escape" || e.key === "Esc") {
+                const overlay = document.getElementById('overlay');
+                if (overlay.style.display === 'flex') {
+                    hideOverlay();
+                    e.preventDefault();
+                    e.stopPropagation();
+                    return;
+                }
+            }
+
+            handleChartKeyDown(e);
+        });
+
+        function formatString(stringtoformat) {
+            let formatted = stringtoformat.replace(/\\n/g, '<br>');
+            return formatted.replace(/\r\n|\r|\n/g, '<br>');
+        }
+
+        function openUserNotesPopup(analysisIndex) {
+            const analysis = dataStore[analysisIndex];
+            if (!analysis) return;
+
+            pendingUserNotesIndex = analysisIndex;
+            const popup = document.getElementById('userNotesPopup');
+            const textarea = document.getElementById('userNotesTextarea');
+            const notes = analysis.user_notes || defaultUserNotes;
+            textarea.value = notes === defaultUserNotes ? '' : notes;
+
+            showModalOverlay();
+            popup.style.display = 'block';
+        }
+
+        function closeUserNotesPopup() {
+            pendingUserNotesIndex = null;
+            const popup = document.getElementById('userNotesPopup');
+            const textarea = document.getElementById('userNotesTextarea');
+            textarea.value = '';
+            popup.style.display = 'none';
+            hideModalOverlay();
+        }
+
+        function saveUserNotes() {
+            if (pendingUserNotesIndex === null) return;
+            const textarea = document.getElementById('userNotesTextarea');
+            const newNotes = textarea.value.trim() || defaultUserNotes;
+
+            fetch('/update_user_notes', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ index: pendingUserNotesIndex, user_notes: newNotes })
+            })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        dataStore[pendingUserNotesIndex].user_notes = newNotes;
+                        if (pendingUserNotesIndex === currentAnalysisIndex) {
+                            displayAnalysisResults(dataStore[currentAnalysisIndex]);
+                        }
+                        closeUserNotesPopup();
+                    } else {
+                        alert(data.message || 'Failed to update user notes.');
+                    }
+                })
+                .catch(error => {
+                    console.error('Error updating user notes:', error);
+                    alert('An error occurred while saving user notes.');
+                });
+        }
+
+        function showAddChartPopup(analysisIndex) {
+            if (isAnalysisInProgress) return;
+            const popup = document.getElementById('addChartPopup');
+            const instructionsTextarea = document.getElementById('newChartInstructions');
+            const addBtn = document.getElementById('addNewChartBtn');
+            const cancelBtn = document.getElementById('cancelAddChartBtn');
+            const dataSelect = document.getElementById('addDataLlmSelect');
+            const codeSelect = document.getElementById('addCodeLlmSelect');
+            showModalOverlay();
+
+            popup.style.display = 'block';
+            instructionsTextarea.value = '';
+            dataSelect.value = defaultDataLlmAlias;
+            codeSelect.value = defaultCodeLlmAlias;
+            renderModelParams(dataSelect);
+            renderModelParams(codeSelect);
+            applyLlmBoxes();
+
+            addBtn.onclick = () => {
+                const instructions = instructionsTextarea.value;
+                const dataAlias = dataSelect.value;
+                const codeAlias = codeSelect.value;
+                const dataParams = collectModelParams(dataSelect);
+                const codeParams = collectModelParams(codeSelect);
+                if (instructions.trim() !== '') {
+                    isAnalysisInProgress = true;
+                    dataStore[analysisIndex].processing = true;
+                    updateAnalysisList();
+                    socket.emit('add_new_chart', {
+                        analysisIndex,
+                        instructions,
+                        data_llm_alias: dataAlias,
+                        data_llm_params: dataParams,
+                        code_llm_alias: codeAlias,
+                        code_llm_params: codeParams
+                    });
+                    popup.style.display = 'none';
+                    hideModalOverlay();
+                }
+            };
+
+            cancelBtn.onclick = () => {
+                popup.style.display = 'none';
+                hideModalOverlay();
+            };
+        }
+
+        function confirmDeleteChart(analysisIndex, chartIndex) {
+            if (isAnalysisInProgress) return;
+            if (confirm("Are you sure you want to delete this chart?")) {
+                deleteChart(analysisIndex, chartIndex);
+            }
+        }
+
+        function deleteChart(analysisIndex, chartIndex) {
+            fetch('/delete_chart', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ analysis_index: analysisIndex, chart_index: chartIndex })
+            })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        const analysis = dataStore[analysisIndex];
+                        analysis.charts_and_comments.splice(chartIndex, 1);
+                        analysis.summary.update_needed = true;
+                        analysis.report.update_needed = true;
+                        displayAnalysisResults(analysis);
+                    } else {
+                        alert(data.message);
+                    }
+                })
+                .catch(error => {
+                    console.error('Error deleting chart:', error);
+                });
+        }
+
+        document.getElementById('startNewAnalysis').addEventListener('click', () => {
+            if (!isAnalysisInProgress) {
+                document.getElementById('analysisForm').style.display = 'block';
+                document.getElementById('analysisContent').style.display = 'none';
+                displayAnalysisResults(null);
+                document.getElementById('analysisTitle').textContent = '';
+                currentAnalysisIndex = -1;
+                updateAnalysisList();
+                applyLlmBoxes();
+            }
+        });
+
+        document.getElementById('uploadForm').addEventListener('submit', function (e) {
+            e.preventDefault();
+            const formData = new FormData(this);
+            formData.append('data_llm_params', JSON.stringify(collectModelParams(document.getElementById('dataLlmSelect'))));
+            formData.append('code_llm_params', JSON.stringify(collectModelParams(document.getElementById('codeLlmSelect'))));
+            formData.append('summary_llm_params', JSON.stringify(collectModelParams(document.getElementById('summaryLlmSelect'))));
+
+            fetch('/startanalysis', {
+                method: 'POST',
+                body: formData
+            }).then(response => {
+                if (response.status === 204) {
+                    isAnalysisInProgress = false;
+                    updateAnalysisList(true);
+                } else if (response.status === 500) {
+                    // Internal Server Error
+                    console.error('Server error: Analysis could not be started.');
+                    // alert('An error occurred on the server. Please try again later.');
+                    document.getElementById('analysisForm').style.display = 'block';
+                    document.getElementById('analysisContent').style.display = 'none';
+                    document.getElementById('analysisTitle').textContent = '';
+                    currentAnalysisIndex = -1;
+                    updateAnalysisList();
+                    applyLlmBoxes();
+                }
+            });
+
+            document.getElementById('analysisForm').style.display = 'none';
+            document.getElementById('analysisContent').style.display = 'block';
+
+            this.reset();
+            renderModelParams(document.getElementById('dataLlmSelect'));
+            renderModelParams(document.getElementById('codeLlmSelect'));
+            renderModelParams(document.getElementById('summaryLlmSelect'));
+            applyLlmBoxes();
+        });
+
+        socket.on('analysis_start', function (data) {
+            console.log('Analysis start:', data);
+            data.processing = true;
+            ensureAnalysisDefaults(data);
+            dataStore.push(data);
+            isAnalysisInProgress = true;
+            updateAnalysisList(true);
+        });
+
+
+        socket.on('analysis_complete', function (data) {
+            console.log('Analysis complete:', data);
+            if (currentAnalysisIndex !== -1) {
+                dataStore[currentAnalysisIndex].processing = false;
+                isAnalysisInProgress = false;
+                updateAnalysisList();
+            }
+            const popup = document.getElementById('popup');
+            popup.style.display = 'none';
+            hideStatusBar(PROCESS_STATUS_BAR_OWNER);
+        });
+
+        socket.on('data_description_update', function (data) {
+            console.log('Data description update:', data);
+            if (currentAnalysisIndex !== -1 && dataStore[currentAnalysisIndex]) {
+                const descriptionPayload = data.description || data;
+                dataStore[currentAnalysisIndex].description = descriptionPayload;
+                if (data.analysis_name) {
+                    dataStore[currentAnalysisIndex].name = data.analysis_name;
+                    updateAnalysisList();
+                }
+                displayAnalysisResults(dataStore[currentAnalysisIndex]);
+            }
+        });
+
+        socket.on('new_chart', function (data) {
+            console.log('New chart:', data);
+            if (currentAnalysisIndex !== -1) {
+                const analysis = dataStore[currentAnalysisIndex];
+                if (!analysis.charts_and_comments) {
+                    analysis.charts_and_comments = [];
+                }
+                analysis.charts_and_comments.push(data);
+                analysis.summary.update_needed = true;
+                displayAnalysisResults(analysis);
+            }
+        });
+
+        socket.on('new_chart_added', function (data) {
+            const i = data.analysisIndex;
+            const analysis = dataStore[i];
+            analysis.report.update_needed = true;
+            analysis.summary.update_needed = true;
+            if (!analysis.charts_and_comments) {
+                analysis.charts_and_comments = [];
+            }
+            analysis.charts_and_comments.push(data.newChart);
+            displayAnalysisResults(analysis);
+            updateAnalysisList();
+            document.getElementById('popup').style.display = 'none';
+            hideModalOverlay();
+        });
+
+        socket.on('summary_update', function (data) {
+            console.log('Summary update:', data);
+
+            let targetIndex = currentAnalysisIndex;
+            let summaryPayload = null;
+
+            if (data && typeof data === 'object') {
+                if (typeof data.analysisIndex === 'number') {
+                    targetIndex = data.analysisIndex;
+                }
+
+                if (data.summary && typeof data.summary === 'object') {
+                    summaryPayload = data.summary;
+                } else if (typeof data.summary_comments === 'string') {
+                    summaryPayload = {
+                        summary_comments: data.summary_comments,
+                        update_needed: Boolean(data.update_needed)
+                    };
+                }
+            } else if (typeof data === 'string') {
+                summaryPayload = { summary_comments: data, update_needed: false };
+            }
+
+            if (
+                summaryPayload &&
+                targetIndex !== -1 &&
+                dataStore[targetIndex]
+            ) {
+                const analysis = dataStore[targetIndex];
+                const summaryInfo = analysis.summary;
+                const comments = summaryPayload.summary_comments;
+                summaryInfo.summary_comments =
+                    typeof comments === 'string' ? comments : (comments ?? '');
+                summaryInfo.update_needed = Boolean(summaryPayload.update_needed);
+
+                if (targetIndex === currentAnalysisIndex) {
+                    isAnalysisInProgress = false;
+                    displayAnalysisResults(analysis);
+                }
+            }
+
+            const popup = document.getElementById('popup');
+            popup.style.display = 'none';
+        });
+
+        function showOverlay(imgElement) {
+            const overlay = document.getElementById('overlay');
+            const overlayImg = document.getElementById('overlayImg');
+            overlayImg.src = imgElement.src;
+            overlay.style.display = 'flex';
+        }
+
+        document.getElementById('saveUserNotesBtn').addEventListener('click', saveUserNotes);
+        document.getElementById('cancelUserNotesBtn').addEventListener('click', closeUserNotesPopup);
+        document.getElementById('confirmRenameBtn').addEventListener('click', submitRenameAnalysis);
+        document.getElementById('cancelRenameBtn').addEventListener('click', closeRenameAnalysisPopup);
+        document.getElementById('confirmDeleteAnalysisBtn').addEventListener('click', submitDeleteAnalysis);
+        document.getElementById('cancelDeleteAnalysisBtn').addEventListener('click', closeDeleteAnalysisPopup);
+        document.getElementById('renameAnalysisInput').addEventListener('keydown', (event) => {
+            if (event.key === 'Enter') {
+                event.preventDefault();
+                submitRenameAnalysis();
+            }
+        });
+
+        fetch('/get_all_analysis_results')
+            .then(response => response.json())
+            .then(data => {
+                console.log('Initial data loaded:', data);
+                dataStore = (data || []).map(ensureAnalysisDefaults);
+                updateAnalysisList();
+            })
+            .catch(error => {
+                console.error('Error loading initial data:', error);
+            });
+
+        function renameAnalysis(index) {
+            if (isAnalysisInProgress) return;
+            openRenameAnalysisPopup(index);
+        }
+
+        function deleteAnalysis(index) {
+            if (isAnalysisInProgress) return;
+            openDeleteAnalysisPopup(index);
+        }
+
+        function openRenameAnalysisPopup(index) {
+            const analysis = dataStore[index];
+            if (!analysis) return;
+
+            pendingRenameIndex = index;
+            const popup = document.getElementById('renameAnalysisPopup');
+            const input = document.getElementById('renameAnalysisInput');
+            input.value = analysis.name || '';
+
+            showModalOverlay();
+            popup.style.display = 'block';
+            requestAnimationFrame(() => {
+                input.focus();
+                const length = input.value.length;
+                input.setSelectionRange(length, length);
+            });
+        }
+
+        function closeRenameAnalysisPopup() {
+            pendingRenameIndex = null;
+            const popup = document.getElementById('renameAnalysisPopup');
+            const input = document.getElementById('renameAnalysisInput');
+            input.value = '';
+            popup.style.display = 'none';
+            hideModalOverlay();
+        }
+
+        function openDeleteAnalysisPopup(index) {
+            const analysis = dataStore[index];
+            if (!analysis) return;
+
+            pendingDeleteIndex = index;
+            const popup = document.getElementById('deleteAnalysisPopup');
+            const nameLabel = document.getElementById('deleteAnalysisName');
+            nameLabel.textContent = analysis.name || 'this analysis';
+
+            showModalOverlay();
+            popup.style.display = 'block';
+            requestAnimationFrame(() => {
+                document.getElementById('confirmDeleteAnalysisBtn').focus();
+            });
+        }
+
+        function closeDeleteAnalysisPopup() {
+            pendingDeleteIndex = null;
+            const popup = document.getElementById('deleteAnalysisPopup');
+            popup.style.display = 'none';
+            hideModalOverlay();
+        }
+
+        function submitRenameAnalysis() {
+            if (pendingRenameIndex === null) return;
+            const input = document.getElementById('renameAnalysisInput');
+            const newName = input.value.trim();
+            if (!newName) return;
+
+            fetch('/rename_analysis', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ index: pendingRenameIndex, new_name: newName })
+            })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        dataStore[pendingRenameIndex].name = newName;
+                        if (pendingRenameIndex === currentAnalysisIndex) {
+                            document.getElementById('analysisTitle').textContent = newName;
+                        }
+                        updateAnalysisList();
+                        closeRenameAnalysisPopup();
+                    } else {
+                        alert(data.message);
+                    }
+                })
+                .catch(error => {
+                    console.error('Error renaming analysis:', error);
+                });
+        }
+
+        function submitDeleteAnalysis() {
+            if (pendingDeleteIndex === null) return;
+
+            fetch('/delete_analysis', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ index: pendingDeleteIndex })
+            })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        dataStore.splice(pendingDeleteIndex, 1);
+                        if (currentAnalysisIndex === pendingDeleteIndex) {
+                            currentAnalysisIndex = -1;
+                            document.getElementById('analysisContent').style.display = 'none';
+                            document.getElementById('analysisTitle').textContent = '';
+                        } else if (currentAnalysisIndex > pendingDeleteIndex) {
+                            currentAnalysisIndex--;
+                        }
+                        updateAnalysisList();
+                        closeDeleteAnalysisPopup();
+                    } else {
+                        alert(data.message);
+                    }
+                })
+                .catch(error => {
+                    console.error('Error deleting analysis:', error);
+                });
+        }
+
+        function showStatusMessage(message) {
+            const popup = document.getElementById('popup');
+            const messageElement = document.getElementById('popup-message');
+            const popupButtons = document.querySelector('#popup .popup-buttons');
+
+            messageElement.textContent = message;
+            popupButtons.style.display = 'none';
+            popup.style.display = 'block';
+        }
+
+        socket.on('update_popup', data => {
+            if (data.message && !data.line1) {
+                const [l1, l2 = ''] = data.message.split('\n');
+                data = { line1: l1, line2: l2 };
+            }
+            showStatusBar({
+                line1: data.line1 || "",
+                line2: data.line2 || "",
+                progress: true,
+                owner: PROCESS_STATUS_BAR_OWNER,
+                priority: 100,
+            });
+        });
+
+        socket.on('show_popup', data => {
+            if (data.message && !data.line1) {
+                const [l1, l2 = ''] = data.message.split('\n');
+                data = { ...data, line1: l1, line2: l2 };
+            }
+            showStatusBar({
+                line1: data.line1 || "",
+                line2: data.line2 || "",
+                buttons: data.buttons || ["Yes", "No"],
+                progress: false,
+                owner: PROCESS_STATUS_BAR_OWNER,
+                priority: 100,
+                showAdditionalInstructions:
+                    data.callback_function === 'handle_data_description_response'
+                    || data.callback_function === 'handle_chart_response',
+                callback: (btn, additionalInstructions) => {
+                    socket.emit('user_response', {
+                        response: btn,
+                        additional_instructions: additionalInstructions,
+                    });
+                    if (data.callback_function === 'handle_data_description_response') {
+                        handleDataDescriptionResponse(btn);
+                    } else if (data.callback_function === 'handle_chart_response') {
+                        handleChartResponse(btn);
+                    }
+                }
+            });
+        });
+
+        function handlePopupResponse(response) {
+            document.getElementById('popup').style.display = 'none';
+            hideModalOverlay();
+            socket.emit('user_response', { response: response });
+
+            if (currentCallbackFunction === 'handle_data_description_response') {
+                handleDataDescriptionResponse(response);
+            } else if (currentCallbackFunction === 'handle_chart_response') {
+                handleChartResponse(response);
+            }
+        }
+
+        function handleDataDescriptionResponse(response) {
+            if (response === 'No') {
+                updateAnalysisList();
+            }
+        }
+
+        function handleChartResponse(response) {
+            if (response === 'No') {
+                updateAnalysisList();
+            }
+        }
+
+        function showReviseChartPopup(analysisIndex, chartIndex) {
+            if (isAnalysisInProgress) return;
+            const popup = document.getElementById('reviseChartPopup');
+            const instructionsTextarea = document.getElementById('reviseChartInstructions');
+            const reviseBtn = document.getElementById('reviseChartBtn');
+            const cancelBtn = document.getElementById('cancelReviseChartBtn');
+            const dataSelect = document.getElementById('reviseDataLlmSelect');
+            const codeSelect = document.getElementById('reviseCodeLlmSelect');
+
+            showModalOverlay();
+            popup.style.display = 'block';
+            instructionsTextarea.value = '';
+            dataSelect.value = defaultDataLlmAlias;
+            codeSelect.value = defaultCodeLlmAlias;
+            renderModelParams(dataSelect);
+            renderModelParams(codeSelect);
+            applyLlmBoxes();
+
+            reviseBtn.onclick = () => {
+                const instructions = instructionsTextarea.value;
+                const dataAlias = dataSelect.value;
+                const codeAlias = codeSelect.value;
+                const dataParams = collectModelParams(dataSelect);
+                const codeParams = collectModelParams(codeSelect);
+                if (instructions.trim() !== '') {
+                    isAnalysisInProgress = true;
+                    dataStore[analysisIndex].processing = true;
+                    updateAnalysisList();
+                    socket.emit('revise_chart', {
+                        analysisIndex,
+                        chartIndex,
+                        instructions,
+                        data_llm_alias: dataAlias,
+                        data_llm_params: dataParams,
+                        code_llm_alias: codeAlias,
+                        code_llm_params: codeParams
+                    });
+                    popup.style.display = 'none';
+                    hideModalOverlay();
+                }
+            };
+
+            cancelBtn.onclick = () => {
+                popup.style.display = 'none';
+                hideModalOverlay();
+            };
+        }
+
+        socket.on('chart_revised', function (data) {
+            console.log('REVISED CHART DATA:', data);
+            const i = data.analysisIndex;
+            const c = data.chartIndex;
+
+            const analysis = dataStore[i];
+            analysis.summary.update_needed = true;
+            analysis.charts_and_comments[c] = data.updatedChart;
+
+            if (data.analysisIndex === currentAnalysisIndex) {
+                dataStore[data.analysisIndex].charts_and_comments[data.chartIndex] = data.updatedChart;
+
+                const chartContainers = document.querySelectorAll('.chart-box');
+                if (chartContainers[data.chartIndex]) {
+                    const imgElement = chartContainers[data.chartIndex].querySelector('img');
+                    if (imgElement) {
+                        imgElement.src = `/${dataStore[currentAnalysisIndex].data_folder}/${data.updatedChart.chart_filename}?t=${new Date().getTime()}`;
+                    }
+
+                    const titleElement = chartContainers[data.chartIndex].querySelector('h3');
+                    if (titleElement) {
+                        titleElement.textContent = data.updatedChart.title;
+                    }
+
+                    const commentsElement = chartContainers[data.chartIndex].querySelector('.item:nth-child(2) div');
+                    if (commentsElement) {
+                        commentsElement.innerHTML = marked.parse(data.updatedChart.analysis_comments);
+                    }
+                }
+
+                analysis.report.update_needed = true;
+                const statusSpan = document.querySelector('.report-status');
+                if (statusSpan) statusSpan.textContent = 'Update needed';
+
+                const summaryStatus = document.querySelector('.summary-status');
+                if (summaryStatus) summaryStatus.textContent = 'Update needed';
+
+                updateAnalysisList();
+                const popup = document.getElementById('popup');
+                popup.style.display = 'none';
+            }
+        });
+
+        function showReviseSummaryPopup(analysisIndex) {
+            if (isAnalysisInProgress) return;
+            const popup = document.getElementById('reviseSummaryPopup');
+            const instructionsTextarea = document.getElementById('reviseSummaryInstructions');
+            const reviseBtn = document.getElementById('reviseSummaryBtn');
+            const cancelBtn = document.getElementById('cancelReviseSummaryBtn');
+            const llmSelect = document.getElementById('reviseSummaryLlmSelect');
+
+            showModalOverlay();
+            popup.style.display = 'block';
+            instructionsTextarea.value = '';
+            llmSelect.value = defaultSummaryLlmAlias;
+            renderModelParams(llmSelect);
+            applyLlmBoxes();
+
+            reviseBtn.onclick = () => {
+                const instructions = instructionsTextarea.value;
+                const includeImagesCheckbox = document.getElementById('includeImages');
+                const includeImages = includeImagesCheckbox ? includeImagesCheckbox.checked : false;
+                const summaryAlias = llmSelect.value;
+                const summaryParams = collectModelParams(llmSelect);
+                isAnalysisInProgress = true;
+                dataStore[analysisIndex].processing = true;
+                updateAnalysisList();
+                socket.emit('revise_summary', {
+                    analysisIndex,
+                    instructions,
+                    include_images: includeImages,
+                    summary_llm_alias: summaryAlias,
+                    summary_llm_params: summaryParams
+                });
+                popup.style.display = 'none';
+                hideModalOverlay();
+            };
+
+            cancelBtn.onclick = () => {
+                popup.style.display = 'none';
+                hideModalOverlay();
+            };
+        }
+
+        function downloadReport(analysisIndex, type) {
+            const a = dataStore[analysisIndex];
+            if (!a.report || !a.report.report_exists) return;
+            const file = type === 'pdf' ? 'report.pdf' : 'report.docx';
+            const url = buildReportFileUrl(a, file, true);
+
+            const link = document.createElement('a');
+            link.href = url;
+            link.download = file;
+            document.body.appendChild(link);
+            link.click();
+            link.remove();
+        }
+
+        function showReviseReportPopup(analysisIndex, reportExists) {
+            if (isAnalysisInProgress) return;
+
+            const popup = document.getElementById('reviseReportPopup');
+            const txt = document.getElementById('reviseReportInstructions');
+            const reviseBtn = document.getElementById('reviseReportBtn');
+            const cancelBtn = document.getElementById('cancelReviseReportBtn');
+
+            popup.querySelector('h3').textContent = reportExists ? 'Revise Report' : 'Generate Report';
+            reviseBtn.textContent = reportExists ? 'Revise report' : 'Generate report';
+
+            let cb = document.getElementById('includeExistingContext');
+            if (reportExists) {
+                if (!cb) {
+                    cb = document.createElement('label');
+                    cb.id = 'includeExistingContextLabel';
+                    cb.innerHTML =
+                        `<input type="checkbox" id="includeExistingContext" checked>
+               Include existing report as context in revision`;
+                    const reviewLabel = document.getElementById("llmReviewLabel");
+                    reviewLabel.parentNode.insertBefore(cb, reviewLabel);
+                } else {
+                    cb.style.display = 'block';
+                }
+            } else if (cb) {
+                cb.style.display = 'none';
+            }
+
+            showModalOverlay();
+            popup.style.display = 'block';
+            txt.value = '';
+            document.getElementById('llmSelect').value = defaultReportLlmAlias;
+            renderModelParams(document.getElementById('llmSelect'));
+            applyLlmBoxes();
+            document.getElementById('llmReview').checked = false;
+            setLlmReviewAvailability();
+
+            reviseBtn.onclick = () => {
+                const instructions = txt.value;
+                const includeContext = reportExists
+                    ? document.getElementById('includeExistingContext').checked
+                    : false;
+
+                isAnalysisInProgress = true;
+                dataStore[analysisIndex].processing = true;
+                updateAnalysisList();
+
+                const llmSelect = document.getElementById('llmSelect');
+                const llmAlias = llmSelect.value;
+                const llmParams = collectModelParams(llmSelect);
+                const llmReview = document.getElementById('llmReview').checked;
+                socket.emit('revise_report', {
+                    analysisIndex,
+                    instructions,
+                    include_context: includeContext,
+                    llm_alias: llmAlias,
+                    llm_params: llmParams,
+                    llm_report_review: llmReview
+                });
+                popup.style.display = 'none';
+                hideModalOverlay();
+            };
+            cancelBtn.onclick = () => {
+                popup.style.display = 'none';
+                hideModalOverlay();
+            };
+        }
+
+        socket.on('report_update', function (generate_report_reply) {
+            console.log('Report update:', generate_report_reply);
+            if (currentAnalysisIndex !== -1) {
+                const rep = dataStore[currentAnalysisIndex].report;
+                rep.report_exists = generate_report_reply;
+                rep.update_needed = !generate_report_reply;
+
+                isAnalysisInProgress = false;
+                displayAnalysisResults(dataStore[currentAnalysisIndex]);
+                updateAnalysisList();
+            }
+            document.getElementById('popup').style.display = 'none';
+            hideModalOverlay();
+        });
+
+        function renderActiveStatusBar() {
+            const activeEntry = [...statusBarEntries.values()]
+                .sort((a, b) => b.priority - a.priority || b.sequence - a.sequence)[0];
+            const bar = document.getElementById('statusBar');
+            const inner = bar.querySelector('.status-bar-inner');
+            if (!activeEntry) {
+                bar.style.display = 'none';
+                bar.dataset.owner = '';
+                return;
+            }
+
+            bar.dataset.owner = activeEntry.owner;
+            inner.querySelector('.status-text-top').textContent = activeEntry.line1;
+            inner.querySelector('.status-text-bottom').textContent = activeEntry.line2;
+
+            const additionalInstructionsWrap = inner.querySelector('.status-additional-instructions');
+            const additionalInstructionsInput = inner.querySelector('#statusAdditionalInstructionsInput');
+            additionalInstructionsInput.value = '';
+            additionalInstructionsWrap.style.display = activeEntry.showAdditionalInstructions ? 'block' : 'none';
+            inner.classList.toggle('has-additional-instructions', activeEntry.showAdditionalInstructions);
+
+            const btnWrap = inner.querySelector('.status-buttons');
+            btnWrap.innerHTML = "";
+            if (Array.isArray(activeEntry.buttons) && activeEntry.buttons.length) {
+                activeEntry.buttons.forEach((txt) => {
+                    const b = document.createElement('button');
+                    b.textContent = txt;
+                    b.onclick = () => {
+                        const additionalInstructions = activeEntry.showAdditionalInstructions
+                            ? additionalInstructionsInput.value.trim()
+                            : '';
+                        hideStatusBar(activeEntry.owner);
+                        activeEntry.callback?.(txt, additionalInstructions);
+                    };
+                    btnWrap.appendChild(b);
+                });
+                btnWrap.style.display = 'flex';
+            } else {
+                btnWrap.style.display = 'none';
+            }
+
+            inner.querySelector('.status-progress')
+                .style.display = activeEntry.progress ? 'block' : 'none';
+
+            bar.style.display = 'block';
+        }
+
+        function showStatusBar(
+            {
+                line1 = "",
+                line2 = "",
+                buttons = null,
+                progress = true,
+                callback = null,
+                showAdditionalInstructions = false,
+                owner = PROCESS_STATUS_BAR_OWNER,
+                priority = 0,
+            }
+        ) {
+            statusBarEntries.set(owner, {
+                owner,
+                priority,
+                line1,
+                line2,
+                buttons,
+                progress,
+                callback,
+                showAdditionalInstructions,
+                sequence: ++statusBarRenderSequence,
+            });
+
+            renderActiveStatusBar();
+        }
+
+        function hideStatusBar(owner = null) {
+            const bar = document.getElementById('statusBar');
+            const ownerToHide = owner || bar.dataset.owner;
+            if (ownerToHide) {
+                statusBarEntries.delete(ownerToHide);
+            } else {
+                statusBarEntries.clear();
+            }
+
+            renderActiveStatusBar();
+        }
+
+        function showModalOverlay() {
+            document.getElementById('modalOverlay').style.display = 'block';
+        }
+
+        function hideModalOverlay() {
+            document.getElementById('modalOverlay').style.display = 'none';
+        }
+
+        // kick things off
+        initLlmParamUIs();
+        setLlmReviewAvailability();
+        console.log('Script loaded and executed');
+    </script>
+</body>
+
+</html>

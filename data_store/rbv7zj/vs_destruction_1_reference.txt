@@ -1,0 +1,13 @@
+Typical volatile solids (VS) destruction ranges for municipal anaerobic digesters:
+
+Many wastewater engineering references report typical VS destruction for anaerobic digestion in the
+range of ~45% to 60% for well-operated municipal full-scale digesters. Example source:
+
+Metcalf & Eddy (4th Ed.) / 'Wastewater Engineering: Treatment and Resource Recovery' — Section on
+Anaerobic Digestion and Sludge Stabilization. This textbook discusses expected VS destruction
+in the typical range of about 40–60% depending on digester type and operating conditions.
+
+Another practical guidance: U.S. EPA and technical manuals on biosolids and anaerobic digestion
+commonly reference similar ranges for mesophilic digesters under normal loading and retention times.
+
+Please consult the cited textbook or local design guidance for precise design/operational targets.

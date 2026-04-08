@@ -1,0 +1,11 @@
+Station number,Station name,N samples,N exceedances,Exceedance percent [%],Median total phosphorus [ug/L],95th percentile total phosphorus [ug/L],Max total phosphorus [ug/L]
+16002700102,Sturgeon River,10,10,100.0,1135.0,4494.5,5030.0
+16003000302,Lebo Drain,7,7,100.0,737.0,963.8,974.0
+11000101302,Oswego Creek,10,10,100.0,562.5,1051.05,1290.0
+4001303302,Big Creek,6,6,100.0,466.0,2162.5,2400.0
+6000300102,Four Mile Creek,9,9,100.0,364.0,3500.8,5400.0
+4001000302,Ruscom River,10,10,100.0,331.0,1947.4,2860.0
+11000100702,Welland River,10,10,100.0,278.0,496.85,500.0
+6002400802,Twenty Mile Creek,14,14,100.0,242.5,590.2,598.0
+4001308102,Mcgregor Creek,7,7,100.0,236.0,507.1,565.0
+16007200102,Dutton Drain,7,7,100.0,216.0,291.8,293.0

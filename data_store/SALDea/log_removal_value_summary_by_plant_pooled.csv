@@ -1,0 +1,37 @@
+Plant,Microorganism,n_pairs [-],median_LRV [log10],mean_LRV [log10],p25_LRV [log10],p75_LRV [log10]
+All plants pooled,Adenovirus,46,3.3,3.7,2.7,5.1
+All plants pooled,Aerobic endospores,45,1.3,1.4,1.1,1.8
+All plants pooled,Cryptosporidium,31,2.0,2.2,1.6,2.8
+All plants pooled,E. coli,44,6.5,6.5,5.8,7.3
+All plants pooled,Fecal coliform,44,6.5,6.4,5.7,7.2
+All plants pooled,Giardia,46,1.9,2.1,1.3,2.7
+All plants pooled,Male-specific coliphage,45,3.4,3.1,3.0,3.6
+All plants pooled,Somatic coliphage,44,3.1,3.1,2.8,3.4
+All plants pooled,Total coliform,41,5.6,5.7,5.0,6.3
+BiSp,Adenovirus,16,2.9,3.5,2.4,5.0
+BiSp,Aerobic endospores,14,1.2,1.5,1.0,1.8
+BiSp,Cryptosporidium,11,2.4,2.7,1.9,3.4
+BiSp,E. coli,13,6.6,6.7,6.4,7.3
+BiSp,Fecal coliform,13,6.6,7.0,6.4,7.3
+BiSp,Giardia,16,2.9,3.0,1.9,4.2
+BiSp,Male-specific coliphage,14,3.7,3.4,3.5,3.7
+BiSp,Somatic coliphage,13,3.3,3.1,3.0,3.6
+BiSp,Total coliform,12,5.8,6.0,5.3,6.4
+BrWo,Adenovirus,14,3.1,3.6,2.9,4.6
+BrWo,Aerobic endospores,15,1.2,1.5,1.2,1.8
+BrWo,Cryptosporidium,10,1.8,2.0,1.6,2.5
+BrWo,E. coli,15,6.7,6.8,6.2,7.6
+BrWo,Fecal coliform,15,6.8,6.8,6.5,7.8
+BrWo,Giardia,14,1.9,1.9,1.3,2.2
+BrWo,Male-specific coliphage,15,3.2,3.0,2.9,3.5
+BrWo,Somatic coliphage,15,3.0,2.9,2.8,3.1
+BrWo,Total coliform,14,6.2,6.0,5.6,6.6
+NoWe,Adenovirus,16,4.4,4.0,2.7,5.2
+NoWe,Aerobic endospores,16,1.5,1.4,1.0,1.6
+NoWe,Cryptosporidium,10,1.9,2.0,1.4,2.6
+NoWe,E. coli,16,6.0,6.2,5.6,6.6
+NoWe,Fecal coliform,16,5.7,5.7,5.1,6.2
+NoWe,Giardia,16,1.4,1.5,1.1,2.1
+NoWe,Male-specific coliphage,16,3.2,3.0,2.9,3.4
+NoWe,Somatic coliphage,16,3.1,3.2,2.8,3.4
+NoWe,Total coliform,15,5.1,5.1,4.4,5.6

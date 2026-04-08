@@ -1,0 +1,335 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Report Viewer</title>
+    <link rel="stylesheet" href="https://unpkg.com/pdfjs-dist@4.10.38/web/pdf_viewer.css">
+    <style>
+        :root {
+            color-scheme: light;
+            font-family: Georgia, "Times New Roman", serif;
+            background: linear-gradient(180deg, #eff2f0 0%, #dde2dd 100%);
+        }
+
+        html,
+        body {
+            height: 100%;
+            margin: 0;
+            overflow: hidden;
+        }
+
+        body {
+            background: transparent;
+            color: #1f2b20;
+        }
+
+        #viewerShell {
+            height: 100%;
+            position: relative;
+            background:
+                radial-gradient(circle at top, rgba(255, 255, 255, 0.65), transparent 52%),
+                linear-gradient(180deg, #eff2f0 0%, #dde2dd 100%);
+        }
+
+        #toolbar {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            z-index: 3;
+            height: 48px;
+            display: flex;
+            align-items: center;
+            justify-content: flex-end;
+            gap: 8px;
+            padding: 8px 12px;
+            box-sizing: border-box;
+            border-bottom: 1px solid rgba(48, 67, 52, 0.15);
+            background: rgba(255, 255, 255, 0.82);
+            backdrop-filter: blur(8px);
+        }
+
+        #toolbar button,
+        #zoomInput {
+            height: 32px;
+            border: 1px solid rgba(48, 67, 52, 0.2);
+            background: #f7faf7;
+            color: #314234;
+            border-radius: 8px;
+            box-sizing: border-box;
+        }
+
+        #toolbar button {
+            min-width: 32px;
+            padding: 0 10px;
+            cursor: pointer;
+            font: inherit;
+        }
+
+        #toolbar button:hover,
+        #zoomInput:hover,
+        #zoomInput:focus {
+            background: #eef4ef;
+        }
+
+        #toolbar button:disabled,
+        #zoomInput:disabled {
+            opacity: 0.55;
+            cursor: not-allowed;
+        }
+
+        #zoomInput {
+            width: 76px;
+            padding: 0 10px;
+            text-align: center;
+            font-family: Arial, sans-serif;
+            font-size: 13px;
+        }
+
+        #statusBar {
+            position: absolute;
+            top: 48px;
+            left: 0;
+            right: 0;
+            z-index: 2;
+            padding: 10px 14px;
+            font-size: 13px;
+            border-bottom: 1px solid rgba(48, 67, 52, 0.15);
+            background: rgba(255, 255, 255, 0.76);
+            backdrop-filter: blur(8px);
+            color: #425546;
+            display: none;
+        }
+
+        #statusBar.is-visible {
+            display: block;
+        }
+
+        #viewerContainer {
+            position: absolute;
+            top: 48px;
+            right: 0;
+            bottom: 0;
+            left: 0;
+            overflow: auto;
+            padding: 18px 0 28px;
+            box-sizing: border-box;
+        }
+
+        #viewerShell.has-status #viewerContainer {
+            top: 90px;
+        }
+
+        #viewer {
+            margin: 0 auto;
+        }
+
+        .pdfViewer .page {
+            margin: 0 auto 18px;
+            border: 1px solid rgba(48, 67, 52, 0.18);
+            box-shadow: 0 16px 28px rgba(41, 55, 45, 0.12);
+        }
+    </style>
+</head>
+
+<body>
+    <div id="viewerShell">
+        <div id="toolbar" aria-label="PDF zoom controls">
+            <button id="zoomOutBtn" type="button" title="Zoom out">-</button>
+            <input id="zoomInput" type="text" inputmode="numeric" aria-label="Zoom percentage" value="100%">
+            <button id="zoomInBtn" type="button" title="Zoom in">+</button>
+        </div>
+        <div id="statusBar" role="status" aria-live="polite"></div>
+        <div id="viewerContainer">
+            <div id="viewer" class="pdfViewer"></div>
+        </div>
+    </div>
+
+    <script type="module">
+        import * as pdfjsLib from "https://unpkg.com/pdfjs-dist@4.10.38/build/pdf.mjs";
+        import {
+            EventBus,
+            PDFLinkService,
+            PDFViewer
+        } from "https://unpkg.com/pdfjs-dist@4.10.38/web/pdf_viewer.mjs";
+
+        pdfjsLib.GlobalWorkerOptions.workerSrc = "https://unpkg.com/pdfjs-dist@4.10.38/build/pdf.worker.mjs";
+
+        const params = new URLSearchParams(window.location.search);
+        const fileUrl = params.get("file");
+
+        const statusBar = document.getElementById("statusBar");
+        const viewerContainer = document.getElementById("viewerContainer");
+        const viewerElement = document.getElementById("viewer");
+        const viewerShell = document.getElementById("viewerShell");
+        const zoomOutBtn = document.getElementById("zoomOutBtn");
+        const zoomInBtn = document.getElementById("zoomInBtn");
+        const zoomInput = document.getElementById("zoomInput");
+        const eventBus = new EventBus();
+        const linkService = new PDFLinkService({ eventBus });
+        const pdfViewer = new PDFViewer({
+            container: viewerContainer,
+            viewer: viewerElement,
+            eventBus,
+            linkService,
+            textLayerMode: 1,
+            removePageBorders: false,
+        });
+
+        let pdfDocument = null;
+        let zoomMode = "page-width";
+        const minZoomPercent = 25;
+        const maxZoomPercent = 400;
+
+        linkService.setViewer(pdfViewer);
+
+        const setStatus = (message = "") => {
+            statusBar.textContent = message;
+            const isVisible = Boolean(message);
+            statusBar.classList.toggle("is-visible", isVisible);
+            viewerShell.classList.toggle("has-status", isVisible);
+        };
+
+        const getBestFitScale = async () => {
+            if (!pdfDocument) {
+                return null;
+            }
+
+            const firstPage = await pdfDocument.getPage(1);
+            const unscaledViewport = firstPage.getViewport({ scale: 1 });
+            const horizontalPadding = 28;
+            const availableWidth = viewerContainer.clientWidth - horizontalPadding;
+
+            if (availableWidth <= 0 || unscaledViewport.width <= 0) {
+                return null;
+            }
+
+            return Math.min(availableWidth / unscaledViewport.width, 1);
+        };
+
+        const updateZoomUi = () => {
+            const currentScale = Number(pdfViewer.currentScale) || 1;
+            zoomInput.value = `${Math.round(currentScale * 100)}%`;
+        };
+
+        const applyZoomScale = (scale) => {
+            if (!Number.isFinite(scale) || scale <= 0) {
+                return;
+            }
+            zoomMode = "custom";
+            pdfViewer.currentScale = scale;
+            updateZoomUi();
+        };
+
+        const parseZoomPercent = (value) => {
+            const match = String(value ?? "").trim().match(/^(\d+(?:\.\d+)?)\s*%?$/);
+            if (!match) {
+                return null;
+            }
+
+            const percent = Number(match[1]);
+            if (!Number.isFinite(percent) || percent <= 0) {
+                return null;
+            }
+
+            return Math.min(Math.max(percent, minZoomPercent), maxZoomPercent);
+        };
+
+        const applyBestFitScale = async () => {
+            const scale = await getBestFitScale();
+            if (scale == null) {
+                return;
+            }
+            zoomMode = "page-width";
+            pdfViewer.currentScale = scale;
+            updateZoomUi();
+        };
+
+        const changeZoomByStep = (direction) => {
+            const currentPercent = (Number(pdfViewer.currentScale) || 1) * 100;
+            if (direction > 0) {
+                const nextPercent = Math.min((Math.floor(currentPercent / 25) + 1) * 25, maxZoomPercent);
+                applyZoomScale(nextPercent / 100);
+                return;
+            }
+
+            const previousPercent = Math.max((Math.ceil(currentPercent / 25) - 1) * 25, minZoomPercent);
+            applyZoomScale(previousPercent / 100);
+        };
+
+        eventBus.on("pagesinit", () => {
+            applyBestFitScale().catch((error) => {
+                console.warn("Unable to set initial PDF scale:", error);
+            });
+        });
+
+        zoomOutBtn.addEventListener("click", () => changeZoomByStep(-1));
+        zoomInBtn.addEventListener("click", () => changeZoomByStep(1));
+        zoomInput.addEventListener("keydown", (event) => {
+            if (event.key === "Enter") {
+                event.preventDefault();
+                zoomInput.blur();
+            }
+        });
+        zoomInput.addEventListener("focus", () => {
+            zoomInput.select();
+        });
+        zoomInput.addEventListener("blur", () => {
+            const zoomPercent = parseZoomPercent(zoomInput.value);
+            if (zoomPercent === null) {
+                updateZoomUi();
+                return;
+            }
+            applyZoomScale(zoomPercent / 100);
+        });
+
+        let resizeTimer = null;
+        window.addEventListener("resize", () => {
+            window.clearTimeout(resizeTimer);
+            resizeTimer = window.setTimeout(() => {
+                const action = zoomMode === "page-width" ? applyBestFitScale() : Promise.resolve(updateZoomUi());
+                Promise.resolve(action).catch((error) => {
+                    console.warn("Unable to update PDF scale:", error);
+                });
+            }, 120);
+        });
+
+        const setControlsDisabled = (disabled) => {
+            zoomOutBtn.disabled = disabled;
+            zoomInBtn.disabled = disabled;
+            zoomInput.disabled = disabled;
+        };
+
+        setControlsDisabled(true);
+
+        if (!fileUrl) {
+            setStatus("No report file was provided.");
+        } else {
+            setStatus("Loading report...");
+            const loadingTask = pdfjsLib.getDocument({
+                url: fileUrl,
+                cMapUrl: "https://unpkg.com/pdfjs-dist@4.10.38/cmaps/",
+                cMapPacked: true,
+                standardFontDataUrl: "https://unpkg.com/pdfjs-dist@4.10.38/standard_fonts/",
+            });
+
+            loadingTask.promise
+                .then((documentHandle) => {
+                    pdfDocument = documentHandle;
+                    pdfViewer.setDocument(documentHandle);
+                    linkService.setDocument(documentHandle, null);
+                    setControlsDisabled(false);
+                    setStatus("");
+                })
+                .catch((error) => {
+                    console.error("Error loading report PDF:", error);
+                    setControlsDisabled(true);
+                    setStatus("Unable to load the report preview.");
+                });
+        }
+    </script>
+</body>
+
+</html>

@@ -1,0 +1,14 @@
+ag2[openai,anthropic,gemini,lmm]==0.11.2
+termcolor
+flask-socketio
+docker
+python-dotenv
+PyYAML
+Jinja2
+agentops
+pandas
+openpyxl
+PyMuPDF
+tabulate
+bleach
+beautifulsoup4

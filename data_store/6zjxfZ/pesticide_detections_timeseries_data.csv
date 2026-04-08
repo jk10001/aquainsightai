@@ -1,0 +1,70 @@
+Sample_Date,Determinand,Result,Units,DWI_Code,LSOA
+2022-01-17,Pesticides (Total by Calculation),0.037,μg/l ,B010,E01021643
+2022-01-17,Pesticides Metaldehyde,0.037,μg/l ,P226,E01021643
+2022-01-24,Pesticides (Total by Calculation),0.0,μg/l ,B010,E01017714
+2022-02-04,Pesticides (Total by Calculation),0.018,μg/l ,B010,E01016746
+2022-02-04,Pesticides Metaldehyde,0.018,μg/l ,P226,E01016746
+2022-02-07,Pesticides (Total by Calculation),0.0,μg/l ,B010,E01007602
+2022-02-14,Pesticides (Total by Calculation),0.0,μg/l ,B010,E01035555
+2022-03-01,Pesticides Metaldehyde,0.03,μg/l ,P226,E01021724
+2022-03-01,Pesticides (Total by Calculation),0.03,μg/l ,B010,E01021724
+2022-03-17,Pesticides (Total by Calculation),0.01,μg/l ,B010,E01016744
+2022-03-17,Pesticides Metaldehyde,0.01,μg/l ,P226,E01016744
+2022-03-24,Pesticides (Total by Calculation),0.024,μg/l ,B010,E01017616
+2022-03-24,Pesticides Propyzamide (Total),0.024,μg/l ,P071,E01017616
+2022-03-29,Pesticides (Total by Calculation),0.0,μg/l ,B010,E01035555
+2022-04-13,Pesticides (Total by Calculation),0.024,μg/l ,B010,E01021724
+2022-04-13,Pesticides Metaldehyde,0.024,μg/l ,P226,E01021724
+2022-04-21,Pesticides (Total by Calculation),0.0,μg/l ,B010,E01017714
+2022-04-28,Pesticides (Total by Calculation),0.004,μg/l ,B010,E01007602
+2022-04-28,Pesticides Atrazine (Total),0.004,μg/l ,P004,E01007602
+2022-04-28,Pesticides (Total by Calculation),0.01,μg/l ,B010,E01034454
+2022-04-28,Pesticides Metaldehyde,0.01,μg/l ,P226,E01034454
+2022-04-28,Pesticides (Total by Calculation),0.0,μg/l ,B010,E01028006
+2022-04-28,Pesticides (Total by Calculation),0.0,μg/l ,B010,E01018200
+2022-05-09,Pesticides (Total by Calculation),0.0,μg/l ,B010,E01017704
+2022-05-11,Pesticides (Total by Calculation),0.0,μg/l ,B010,E01035557
+2022-05-24,Pesticides (Total by Calculation),0.026,μg/l ,B010,E01021723
+2022-05-24,Pesticides Metaldehyde,0.026,μg/l ,P226,E01021723
+2022-06-10,Pesticides (Total by Calculation),0.0,μg/l ,B010,E01016742
+2022-06-14,Pesticides (Total by Calculation),0.019,μg/l ,B010,E01017616
+2022-06-14,Pesticides Propyzamide (Total),0.019,μg/l ,P071,E01017616
+2022-06-22,Pesticides (Total by Calculation),0.0,μg/l ,B010,E01035558
+2022-07-05,Pesticides Metaldehyde,0.024,μg/l ,P226,E01021643
+2022-07-05,Pesticides (Total by Calculation),0.024,μg/l ,B010,E01021643
+2022-07-08,Pesticides (Total by Calculation),0.0,μg/l ,B010,E01007602
+2022-07-12,Pesticides (Total by Calculation),0.0,μg/l ,B010,E01017704
+2022-07-18,Pesticides (Total by Calculation),0.009,μg/l ,B010,E01034454
+2022-07-18,Pesticides Metaldehyde,0.009,μg/l ,P226,E01034454
+2022-08-04,Pesticides (Total by Calculation),0.0,μg/l ,B010,E01035555
+2022-08-12,Pesticides (Total by Calculation),0.0,μg/l ,B010,E01007599
+2022-08-15,Pesticides (Total by Calculation),0.0,μg/l ,B010,E01035555
+2022-08-16,Pesticides (Total by Calculation),0.022,μg/l ,B010,E01021644
+2022-08-16,Pesticides Metaldehyde,0.022,μg/l ,P226,E01021644
+2022-08-16,Pesticides (Total by Calculation),0.0,μg/l ,B010,E01028037
+2022-08-22,Pesticides (Total by Calculation),0.0,μg/l ,B010,E01017714
+2022-08-22,Pesticides Propyzamide (Total),0.011,μg/l ,P071,E01017616
+2022-08-22,Pesticides (Total by Calculation),0.011,μg/l ,B010,E01017616
+2022-08-30,Pesticides (Total by Calculation),0.008,μg/l ,B010,E01016744
+2022-08-30,Pesticides Metaldehyde,0.008,μg/l ,P226,E01016744
+2022-09-13,Pesticides (Total by Calculation),0.0,μg/l ,B010,E01035555
+2022-09-26,Pesticides (Total by Calculation),0.024,μg/l ,B010,E01021727
+2022-09-26,Pesticides Metaldehyde,0.024,μg/l ,P226,E01021727
+2022-10-12,Pesticides (Total by Calculation),0.026,μg/l ,B010,E01017669
+2022-10-12,Pesticides Metaldehyde,0.026,μg/l ,P226,E01017669
+2022-10-13,Pesticides (Total by Calculation),0.0,μg/l ,B010,E01035555
+2022-10-20,Pesticides (Total by Calculation),0.0,μg/l ,B010,E01021643
+2022-11-02,Pesticides (Total by Calculation),0.0305,μg/l ,B010,E01016745
+2022-11-02,Pesticides Metaldehyde,0.0305,μg/l ,P226,E01016745
+2022-11-17,Pesticides Atrazine (Total),0.004,μg/l ,P004,E01007602
+2022-11-17,Pesticides (Total by Calculation),0.004,μg/l ,B010,E01007602
+2022-11-17,Pesticides (Total by Calculation),0.0,μg/l ,B010,E01035557
+2022-11-25,Pesticides 2 4-D (Total),0.016,μg/l ,P020,E01028037
+2022-11-25,Pesticides Propyzamide (Total),0.005,μg/l ,P071,E01028037
+2022-11-25,Pesticides (Total by Calculation),0.0,μg/l ,B010,E01028037
+2022-11-25,Pesticides (Total by Calculation),0.032,μg/l ,B010,E01034453
+2022-11-25,Pesticides Metaldehyde,0.032,μg/l ,P226,E01034453
+2022-11-30,Pesticides (Total by Calculation),0.0,μg/l ,B010,E01021643
+2022-11-30,Pesticides Metaldehyde,0.0197,μg/l ,P226,E01021643
+2022-12-30,Pesticides (Total by Calculation),0.0,μg/l ,B010,E01021723
+2022-12-30,Pesticides Metaldehyde,0.0165,μg/l ,P226,E01021723

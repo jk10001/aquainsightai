@@ -1,0 +1,88 @@
+Determinand,Reg_Determinand_Name,Reg_PCV_Value,Reg_PCV_Units,Compliance_Pass_Fail,Total_Samples,Num_Fail,Mean_Result,Max_Result
+1 2-Dichloroethane (Total),,,,,,,,
+Aluminium (Total),Aluminium,200.0,µg/l,Fail,4464,2,9.45492831748992,251.5
+Ammonium (Total),Ammonium,0.5,mgNH4/l,Pass,2921,0,0.1558829174946936,0.481999993
+Antimony,Antimony,5.0,µg/l,Pass,1322,0,0.18049924393040845,0.800000012
+Arsenic (Total),,,,,,,,
+Benzene (Total),,,,,,,,
+Benzo[a]Pyrene (Total),benzo[a]pyrene,0.01,µg/l,Pass,1295,0,0.0020177606177606182,0.008
+Boron,Boron,1.0,mg/l,Pass,49,0,0.06127959210204082,0.187000006
+Bromate,Bromate,10.0,µg/l,Pass,142,0,0.7593661873521127,2.039999962
+Cadmium (Total),,,,,,,,
+Chloride,Chloride,250.0,mg/l,Pass,51,0,48.348234962313725,78.90000153
+Chromium (Total),Chromium,50.0,µg/l,Pass,1321,0,0.5506828129515519,4.0
+Clostridum Perfringens (Sulphite-reducing Clostridia) (Confirmed),Clostridium perfringens,0.0,Number/100ml,Pass,51,0,0.0,0.0
+Coliform Bacteria (Indicator),Coliform bacteria,0.0,number/100ml,Fail,13375,41,0.03902803738317757,95.0
+Colony Counts After 3 Days At 22øc (Colony Counts),,,,,,,,
+Colour,Colour,20.0,mg/l Pt/Co,Pass,5057,0,1.3073877463525805,4.400000095
+Conductivity (Electrical Conductivity),Conductivity,2500.0,µS/cm @ 20°C,Pass,1920,0,649.4296875,887.0
+Copper (Total),Copper,2.0,mg/l,Pass,1279,0,0.0684758249460516,1.230000019
+Cyanide (Total),Cyanide,50.0,µg/l,Pass,52,0,3.3329999450000014,3.332999945
+E.Coli (faecal coliforms Confirmed),Escherichia coli,0.0,number/100ml,Fail,13375,4,0.007476635514018692,89.0
+Enterococci (Confirmed),Enterococci,0.0,number/100ml,Fail,1314,2,0.0015220700152207,1.0
+Fluoride (Total),Fluoride,1.5,mg/l,Pass,1329,0,0.38108276883972914,1.366000056
+Gross Alpha,gross alpha,0.1,Bq/l,Fail,9,1,0.05522222166666666,0.151999995
+Gross Beta,gross beta,1.0,Bq/l,Pass,9,0,0.18588888744444446,0.300000012
+Hydrogen ion (pH) - Indicator (Hydrogen ion) (pH),pH,,,,,,,
+Iron (Total),Iron,200.0,µg/l,Fail,4484,7,17.02051739518287,1495.0
+Lead (10 - will apply 25.12.2013),Lead,10.0,µg/l,Fail,1325,5,0.46398339330188676,39.66899872
+Manganese (Total),Manganese,50.0,µg/l,Fail,4484,2,3.126739517968778,185.8999939
+Mercury (Total),Mercury,1.0,µg/l,Pass,51,0,0.09205882352941178,0.097
+Nickel (Total),Nickel,20.0,µg/l,Fail,1320,6,2.816668172743939,299.8299866
+Nitrate (Total),Nitrate,50.0,mgNO3/l,Pass,2928,0,19.582299868563865,49.0
+Nitrite - Consumer's Taps,Nitrite,0.5,mgNO2/l,Pass,2937,0,0.06192941783043923,0.407000005
+Nitrite/Nitrate formula,Nitrate+Nitrite formula,1.0,,Pass,2863,0,0.38115092555955293,0.980000019
+Odour,Odour,,,,,,,
+Pesticides (Total by Calculation),Pesticides: total,0.5,µg/l,Pass,45,0,0.008722222222222223,0.037
+Pesticides 2 4-D (Total),Other pesticides,0.1,µg/l,Pass,2,0,0.013000000000000001,0.016
+Pesticides 2 4-DB (Total),Other pesticides,0.1,µg/l,Pass,2,0,0.008,0.008
+Pesticides Aldrin,Aldrin,0.03,µg/l,Pass,30,0,0.0029599999999999995,0.003
+Pesticides Atrazine (Total),Other pesticides,0.1,µg/l,Pass,11,0,0.004000000000000001,0.004
+Pesticides Benazolin (Total),Other pesticides,0.1,µg/l,Pass,2,0,0.01,0.01
+Pesticides Bentazone (Total),Other pesticides,0.1,µg/l,Pass,7,0,0.008,0.008
+Pesticides Bromacil,Other pesticides,0.1,µg/l,Pass,5,0,0.006,0.006
+Pesticides Carbetamide,Other pesticides,0.1,µg/l,Pass,5,0,0.014000000000000002,0.014
+Pesticides Chlorfenvinphos (Total),Other pesticides,0.1,µg/l,Pass,2,0,0.007,0.007
+Pesticides Chloridazon,Other pesticides,0.1,µg/l,Pass,2,0,0.012,0.012
+Pesticides Chlormequat,Other pesticides,0.1,µg/l,Pass,2,0,0.005,0.005
+Pesticides Chlorothalonil,Other pesticides,0.1,µg/l,Pass,1,0,0.01,0.01
+Pesticides Chlortoluron (Total),Other pesticides,0.1,µg/l,Pass,2,0,0.01,0.01
+Pesticides Clopyralid (Total),Other pesticides,0.1,µg/l,Pass,14,0,0.017999999999999995,0.018
+Pesticides Cyanazine,Other pesticides,0.1,µg/l,Pass,2,0,0.008,0.008
+Pesticides Dichlorprop (Total),Other pesticides,0.1,µg/l,Pass,2,0,0.004,0.004
+Pesticides Dieldrin (Total),Dieldrin,0.03,µg/l,Pass,29,0,0.002968965517241379,0.003
+Pesticides Fluroxypyr,Other pesticides,0.1,µg/l,Pass,2,0,0.02,0.02
+Pesticides Glyphosate,Other pesticides,0.1,µg/l,Pass,2,0,0.007,0.007
+Pesticides Heptachlor (Total),Heptachlor,0.1,µg/l,Pass,30,0,0.0020000000000000005,0.002
+"Pesticides Heptachlor Epoxide - Total (Trans, CIS) (Heptachlor Epoxide)",Heptachlor epoxide,0.1,µg/l,Pass,30,0,0.003000000000000001,0.003
+Pesticides Isoproturon (Total),Other pesticides,0.1,µg/l,Pass,5,0,0.006,0.006
+Pesticides Linuron (Total),Other pesticides,0.1,µg/l,Pass,24,0,0.014,0.014
+Pesticides MCPA (Total) 4-chloro-o-tolyloxyacetic acid,Other pesticides,0.1,µg/l,Pass,2,0,0.008,0.008
+Pesticides MCPB (Total),Other pesticides,0.1,µg/l,Pass,2,0,0.006,0.006
+Pesticides MCPP(Mecoprop) (Total),Other pesticides,0.1,µg/l,Pass,7,0,0.005999999999999999,0.006
+Pesticides Metaldehyde,Other pesticides,0.1,µg/l,Pass,18,0,0.020816666666666667,0.037
+Pesticides Metamitron,Other pesticides,0.1,µg/l,Pass,2,0,0.017000001,0.017000001
+Pesticides Metazachlor,Other pesticides,0.1,µg/l,Pass,2,0,0.03,0.03
+Pesticides Monuron,Other pesticides,0.1,µg/l,Pass,24,0,0.012000000000000002,0.012
+Pesticides Pirimicarb,Other pesticides,0.1,µg/l,Pass,2,0,0.00665,0.007
+Pesticides Prometryne,Other pesticides,0.1,µg/l,Pass,2,0,0.01,0.01
+Pesticides Propazine,Other pesticides,0.1,µg/l,Pass,2,0,0.01,0.01
+Pesticides Propyzamide (Total),Other pesticides,0.1,µg/l,Pass,5,0,0.0126,0.024
+Pesticides Quinmerac,Other pesticides,0.1,µg/l,Pass,2,0,0.013,0.013
+Pesticides Simazine (Total),Other pesticides,0.1,µg/l,Pass,5,0,0.01,0.01
+Pesticides Terbutryn,Other pesticides,0.1,µg/l,Pass,2,0,0.01,0.01
+Pesticides Triclopyr (Total),Other pesticides,0.1,µg/l,Pass,2,0,0.012,0.012
+Pesticides Trietazine,Other pesticides,0.1,µg/l,Pass,24,0,0.016,0.016
+Polycyclic Aromatic Hydrocarbons (Total by Calculation),PAH,0.1,µg/l,Pass,1293,0,2.7842227378190253e-05,0.036
+Residual Disinfectant - Free,,,,,,,,
+Residual Disinfectant - Total,,,,,,,,
+Selenium (Total),Selenium,10.0,µg/l,Pass,1322,0,0.9012239058464446,3.680000067
+Sodium (Total),Sodium,200.0,mg/l,Pass,1322,0,32.25806504310137,98.59999847
+Sulphate,Sulphate,250.0,mg/l,Pass,50,0,60.18599979382,125.5400009
+Taste (Taste Quant),Taste,,,,,,,
+Tetrachloromethane (Total),,,,,,,,
+Total Organic Carbon,TOC,,,,,,,
+Trichloroethene & Tetrachloroethene - Sum Of 2 Substances (Total by Calculation),,,,,,,,
+Trihalomethanes (Total by Calculation),THM (total),100.0,µg/l,Pass,1324,0,15.96678627496979,80.0
+Tritium,tritium,100.0,Bq/l,Pass,9,0,5.314444435888889,6.0
+Turbidity,Turbidity,1.0,NTU,Fail,5058,17,0.13525761117892446,2.730000019

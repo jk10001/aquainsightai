@@ -1,0 +1,37 @@
+Plant,Microorganism,Units,n_influent_samples [-],n_influent_detected [-],influent_detection_prevalence [%],n_effluent_samples [-],n_effluent_detected [-],effluent_detection_prevalence [%]
+BiSp,Adenovirus,MPN/L,16,16,100.0,16,13,81.2
+BiSp,Aerobic endospores,CFU/100mL,14,14,100.0,14,14,100.0
+BiSp,Cryptosporidium,/L,16,11,68.8,16,12,75.0
+BiSp,E. coli,MPN/100mL,14,14,100.0,13,8,61.5
+BiSp,Fecal coliform,MPN/100mL,14,14,100.0,13,10,76.9
+BiSp,Giardia,/L,16,16,100.0,16,14,87.5
+BiSp,Male-specific coliphage,PFU/mL,14,14,100.0,15,1,6.7
+BiSp,Somatic coliphage,PFU/mL,13,13,100.0,15,2,13.3
+BiSp,Total coliform,MPN/100mL,13,13,100.0,12,11,91.7
+BrWo,Adenovirus,MPN/L,16,14,87.5,16,6,37.5
+BrWo,Aerobic endospores,CFU/100mL,15,15,100.0,15,15,100.0
+BrWo,Cryptosporidium,/L,15,10,66.7,15,14,93.3
+BrWo,E. coli,MPN/100mL,15,15,100.0,15,7,46.7
+BrWo,Fecal coliform,MPN/100mL,15,15,100.0,15,7,46.7
+BrWo,Giardia,/L,15,14,93.3,15,15,100.0
+BrWo,Male-specific coliphage,PFU/mL,15,15,100.0,15,1,6.7
+BrWo,Somatic coliphage,PFU/mL,15,15,100.0,15,2,13.3
+BrWo,Total coliform,MPN/100mL,14,14,100.0,14,13,92.9
+NoWe,Adenovirus,MPN/L,16,16,100.0,16,9,56.2
+NoWe,Aerobic endospores,CFU/100mL,16,16,100.0,16,16,100.0
+NoWe,Cryptosporidium,/L,16,10,62.5,16,13,81.2
+NoWe,E. coli,MPN/100mL,16,16,100.0,16,16,100.0
+NoWe,Fecal coliform,MPN/100mL,16,16,100.0,16,16,100.0
+NoWe,Giardia,/L,16,16,100.0,16,16,100.0
+NoWe,Male-specific coliphage,PFU/mL,16,16,100.0,16,3,18.8
+NoWe,Somatic coliphage,PFU/mL,16,16,100.0,16,5,31.2
+NoWe,Total coliform,MPN/100mL,15,15,100.0,15,15,100.0
+All plants pooled,Adenovirus,MPN/L,48,46,95.8,48,28,58.3
+All plants pooled,Aerobic endospores,CFU/100mL,45,45,100.0,45,45,100.0
+All plants pooled,Cryptosporidium,/L,47,31,66.0,47,39,83.0
+All plants pooled,E. coli,MPN/100mL,45,45,100.0,44,31,70.5
+All plants pooled,Fecal coliform,MPN/100mL,45,45,100.0,44,33,75.0
+All plants pooled,Giardia,/L,47,46,97.9,47,45,95.7
+All plants pooled,Male-specific coliphage,PFU/mL,45,45,100.0,46,5,10.9
+All plants pooled,Somatic coliphage,PFU/mL,44,44,100.0,46,9,19.6
+All plants pooled,Total coliform,MPN/100mL,42,42,100.0,41,39,95.1

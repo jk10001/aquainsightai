@@ -1,0 +1,17 @@
+Analyte,Units (data),PWQO objective,Objective units,PWQO notes / requirement,N samples,N exceedances,% exceedances,N stations with ≥1 exceedance,% non-detect,% non-detect MDL>objective,Mean (½MDL for ND),Median (½MDL for ND),95th percentile (½MDL for ND)
+Aluminum,ug/L,pH-dependent,ug/L,pH-dependent: use 75 µg/L for pH >6.5–9.0; 15 µg/L for pH 4.5–5.5. For pH 5.5–6.5: background-based / 10% increase; flagged as not directly screenable with single number. Aluminum screening attempted only where same-day pH available.,2134,906,42.5,218,3.0,,170.224,56.7,643.0
+Arsenic,ug/L,5.0,ug/L,Interim revised PWQO 5 µg/L (more stringent).,199,28,14.1,7,39.2,0.0,3.913,1.0,21.1
+Boron,ug/L,200.0,ug/L,Interim 200 µg/L.,93,0,0.0,0,48.4,0.0,22.828,10.0,75.6
+Cadmium,ug/L,hardness-adjusted,ug/L,Hardness-adjusted (Interim revised): 0.1 µg/L if hardness <100 mg/L as CaCO3; else 0.5 µg/L. 3 sample(s) lacked same-day hardness and were excluded from exceedance screening.,2134,112,5.2,86,94.8,,0.537,0.45,1.01
+Chromium,ug/L,1.0,ug/L,Speciation not provided in dataset; conservative screening = Cr VI objective 1 µg/L.,2070,200,9.7,113,90.0,8.6,0.76,0.5,2.5
+Copper,ug/L,hardness-adjusted,ug/L,Hardness-adjusted (Interim revised): 1 µg/L if hardness 0–20 mg/L as CaCO3; else 5 µg/L. 3 sample(s) lacked same-day hardness and were excluded from exceedance screening.,2133,199,9.3,80,8.0,,2.527,1.79,6.552
+E. coli count per 100 mL,MPN / 100mL,100.0,MPN/100mL,Objective = 100 MPN/100 mL; geometric mean of >=5 samples required for official assessment; per-sample >100 flagged.,216,123,56.9,21,0.0,0.0,807.94,131.5,3275.0
+Iron,ug/L,300.0,ug/L,,2132,613,28.8,186,0.4,0.0,294.088,168.0,919.8
+Lead,ug/L,hardness-adjusted,ug/L,Hardness-adjusted (Interim revised): 1 µg/L if hardness <30; 3 µg/L if 30–80; 5 µg/L if >80 mg/L as CaCO3. 3 sample(s) lacked same-day hardness and were excluded from exceedance screening.,2132,1,0.0,1,99.3,,3.85,3.5,3.5
+Mercury,ng/L,0.2,ug/L,Objective 0.2 µg/L; applies to filtered/dissolved samples — dataset may not indicate filter status.,142,0,0.0,0,95.8,0.0,3.001,2.5,2.5
+Nickel,ug/L,25.0,ug/L,,2134,31,1.5,7,82.1,0.1,2.978,1.0,6.277
+Phosphorus; total,ug/L,30.0,ug/L,River objective only (30 µg/L). Dataset contains rivers only per instructions.,3666,1469,40.1,312,0.1,0.0,67.608,23.6,237.75
+Selenium,ug/L,100.0,ug/L,,95,0,0.0,0,100.0,0.0,2.476,2.5,2.5
+Silver,ug/L,0.1,ug/L,,2117,0,0.0,0,100.0,100.0,4.889,4.5,4.5
+Zinc,ug/L,20.0,ug/L,Interim revised = 20 µg/L (more stringent than PWQO 30 µg/L).,2114,182,8.6,76,5.8,0.0,9.119,4.86,29.835
+pH,,6.5-8.5,SU,Range 6.5-8.5 (exceed if <6.5 or >8.5).,3669,157,4.3,90,0.0,0.0,8.166,8.23,8.49
