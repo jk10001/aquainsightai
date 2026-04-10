@@ -99,7 +99,25 @@ In the UI webpage, the **left panel** displays a list of previous analysis runs.
 
 3. **Data Description:** LLM-generated description of the dataset plus a tabbed data preview (multi-sheet XLSX supported).
 
+<p>
+  <a href="docs/images/data_description.png">
+    <img src="docs/images/data_description.png" alt="Data description view" width="420" />
+  </a>
+</p>
+
 4. **Report:** Generate/revise the report, view the report and code, and download PDF/DOCX. A notification will be shown here if the analysis has been modified since the report was last generated.
+
+<p>
+  <a href="docs/images/report_1.png">
+    <img src="docs/images/report_1.png" alt="Report view 1" width="32%" />
+  </a>
+  <a href="docs/images/report_2.png">
+    <img src="docs/images/report_2.png" alt="Report view 2" width="32%" />
+  </a>
+  <a href="docs/images/report_3.png">
+    <img src="docs/images/report_3.png" alt="Report view 3" width="32%" />
+  </a>
+</p>
 
 5. **Summary:** Concise LLM-generated overview of findings, with change notification if outdated.
 
@@ -107,12 +125,43 @@ In the UI webpage, the **left panel** displays a list of previous analysis runs.
     - Click a chart for full-screen interactive view (zoom, toggle series, select data points).
     - Components can be revised or deleted interactively. 
 
+<p>
+  <a href="docs/images/analysis_component_1.png">
+    <img src="docs/images/analysis_component_1.png" alt="Analysis component view 1" width="32%" />
+  </a>
+  <a href="docs/images/analysis_component_2.png">
+    <img src="docs/images/analysis_component_2.png" alt="Analysis component view 2" width="32%" />
+  </a>
+  <a href="docs/images/analysis_component_3.png">
+    <img src="docs/images/analysis_component_3.png" alt="Analysis component view 3" width="32%" />
+  </a>
+</p>
+
+
+<p>
+  <a href="docs/images/analysis_component_interactive_1.png">
+    <img src="docs/images/analysis_component_interactive_1.png" alt="Interactive analysis component view 1" width="32%" />
+  </a>
+  <a href="docs/images/analysis_component_interactive_2.png">
+    <img src="docs/images/analysis_component_interactive_2.png" alt="Interactive analysis component view 2" width="32%" />
+  </a>
+  <a href="docs/images/analysis_component_interactive_3.png">
+    <img src="docs/images/analysis_component_interactive_3.png" alt="Interactive analysis component view 3" width="32%" />
+  </a>
+</p>
+
 
 ### Start a new analysis
 
 To start a new analysis:
 
 1. Click **Start Analysis** at the top of the left panel.
+
+<p>
+  <a href="docs/images/start_new_analysis.png">
+    <img src="docs/images/start_new_analysis.png" alt="Start new analysis dialog" width="420" />
+  </a>
+</p>
 
 2. Upload a CSV/XLSX file, add optional instructions, and choose LLM configurations for each agent.
 
@@ -252,4 +301,3 @@ This project is licensed under the [Apache License 2.0](LICENSE).
 
 You are free to use, modify, and distribute this software for commercial or non-commercial purposes, provided that proper attribution is maintained.  
 See the LICENSE file for full terms.
-
