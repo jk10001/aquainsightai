@@ -106,7 +106,7 @@ AGENT_CACHE = None
 RUN_AGENTOPS = False
 TABLE_SIG_FIGS = 6
 DEFAULT_USER_NOTES = "No notes provided."
-ANTHROPIC_THINKING_ENABLE = False
+ANTHROPIC_THINKING_ENABLE = True
 ALLOW_HTML_SUMMARY_GENERATION = False
 REMOVE_PREVIOUS_IMAGES = False
 if ALLOW_HTML_SUMMARY_GENERATION:
@@ -440,7 +440,7 @@ def add_data_description(
         {
             "line1": "Initial data review complete. Proceed with data analysis?",
             "line2": "",
-            "buttons": ["Yes", "No"],
+            "buttons": ["Continue", "Stop and summarise"],
             "callback_function": "handle_data_description_response",
         },
     )
@@ -455,7 +455,7 @@ def add_data_description(
         else ""
     )
 
-    if response == "Yes":
+    if response == "Continue":
         return (
             "Result from tool call: Successfully added data descriptions. "
             f"Now proceed with requesting charts or tables. {additional_instructions_message}"
@@ -515,7 +515,7 @@ def add_chart_and_comment(
         {
             "line1": "Continue with data analysis?",
             "line2": "",
-            "options": ["Yes", "No"],
+            "buttons": ["Continue", "Stop and summarise"],
             "callback_function": "handle_chart_response",
         },
     )
@@ -528,7 +528,7 @@ def add_chart_and_comment(
         else ""
     )
 
-    if response == "Yes":
+    if response == "Continue":
         return (
             f"Result from tool call: Successfully added chart '{title}' and comments to list. "
             f"Now select another chart or table to produce. {additional_instructions_message}"

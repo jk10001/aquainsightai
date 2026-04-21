@@ -223,8 +223,6 @@ DEFAULT_REPORT_LLM_ALIAS = "GPT-5.2"
 QUERY_REFERENCE_DOC_LLM_NAME = "gemini-2.5-flash-lite"
 ```
 
-**Claude thinking parameters:** Thinking mode is currently disabled for Claude models pending further bug fixes.
-
 ### Agent Roles
 | Agent | Function | Recommended Models |
 | --- | --- | --- |
