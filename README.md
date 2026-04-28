@@ -206,7 +206,7 @@ Existing analysis runs may be modified:
 
 ## LLMs and Agents
 
-Available LLMs are defined in `models.json`. Additional models may be added here and will be available for use in the UI.
+Available LLMs are defined in `models.json`. Additional models may be added here and will be available for use in the UI. Agent-specific restrictions are set with `metadata.excluded_agents`; excluded models are disabled in that agent's UI selector when `SELECTIVE_LLM_ROLE_EXCLUSION` is enabled in `data_analysis.py`.
 
 Default agent assignments are set in `data_analysis.py`:
 ```python

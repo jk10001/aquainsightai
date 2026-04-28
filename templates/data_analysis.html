@@ -1,7 +1,10 @@
-{% macro render_llm_option(alias, selected_alias) -%}
-{% set is_disabled = not llm_api_key_status.get(alias) %}
+{% macro render_llm_option(alias, selected_alias, agent_role=None) -%}
+{% set is_missing_key = not llm_api_key_status.get(alias) %}
+{% set excluded_agents = model_metadata.get(alias, {}).get('excluded_agents', []) %}
+{% set is_excluded = selective_llm_role_exclusion and agent_role and agent_role in excluded_agents %}
+{% set is_disabled = is_missing_key or is_excluded %}
 <option value="{{ alias }}" {% if alias==selected_alias and not is_disabled %}selected{% endif %} {% if is_disabled
-    %}disabled class="llm-option-disabled" {% endif %}>{{ alias }}{% if is_disabled %} (API key missing){% endif %}
+    %}disabled class="llm-option-disabled" {% endif %}>{{ alias }}{% if is_missing_key and is_excluded %} (API key missing; excluded for this role){% elif is_missing_key %} (API key missing){% elif is_excluded %} (excluded for this role){% endif %}
 </option>
 {%- endmacro %}
 <!doctype html>
@@ -1240,7 +1243,7 @@
                             <label for="dataLlmSelect">Data analysis LLM:</label>
                             <select id="dataLlmSelect" name="data_llm_alias">
                                 {% for alias in data_llm_aliases %}
-                                {{ render_llm_option(alias, default_data_llm_alias) }}
+                                {{ render_llm_option(alias, default_data_llm_alias, 'process_agent') }}
                                 {% endfor %}
                             </select>
                         </div>
@@ -1249,7 +1252,7 @@
                             <label for="codeLlmSelect">Code LLM:</label>
                             <select id="codeLlmSelect" name="code_llm_alias">
                                 {% for alias in code_llm_aliases %}
-                                {{ render_llm_option(alias, default_code_llm_alias) }}
+                                {{ render_llm_option(alias, default_code_llm_alias, 'int_data_coding_agent') }}
                                 {% endfor %}
                             </select>
                         </div>
@@ -1258,7 +1261,7 @@
                             <label for="summaryLlmSelect">Summary LLM:</label>
                             <select id="summaryLlmSelect" name="summary_llm_alias">
                                 {% for alias in summary_llm_aliases %}
-                                {{ render_llm_option(alias, default_summary_llm_alias) }}
+                                {{ render_llm_option(alias, default_summary_llm_alias, 'summary_agent') }}
                                 {% endfor %}
                             </select>
                         </div>
@@ -1328,7 +1331,7 @@
             <label for="addDataLlmSelect">Data analysis LLM:</label>
             <select id="addDataLlmSelect">
                 {% for alias in data_llm_aliases %}
-                {{ render_llm_option(alias, default_data_llm_alias) }}
+                {{ render_llm_option(alias, default_data_llm_alias, 'process_agent') }}
                 {% endfor %}
             </select>
         </div>
@@ -1337,7 +1340,7 @@
             <label for="addCodeLlmSelect">Code LLM:</label>
             <select id="addCodeLlmSelect">
                 {% for alias in code_llm_aliases %}
-                {{ render_llm_option(alias, default_code_llm_alias) }}
+                {{ render_llm_option(alias, default_code_llm_alias, 'int_data_coding_agent') }}
                 {% endfor %}
             </select>
         </div>
@@ -1357,7 +1360,7 @@
             <label for="reviseDataLlmSelect">Data analysis LLM:</label>
             <select id="reviseDataLlmSelect">
                 {% for alias in data_llm_aliases %}
-                {{ render_llm_option(alias, default_data_llm_alias) }}
+                {{ render_llm_option(alias, default_data_llm_alias, 'process_agent') }}
                 {% endfor %}
             </select>
         </div>
@@ -1366,7 +1369,7 @@
             <label for="reviseCodeLlmSelect">Code LLM:</label>
             <select id="reviseCodeLlmSelect">
                 {% for alias in code_llm_aliases %}
-                {{ render_llm_option(alias, default_code_llm_alias) }}
+                {{ render_llm_option(alias, default_code_llm_alias, 'int_data_coding_agent') }}
                 {% endfor %}
             </select>
         </div>
@@ -1389,7 +1392,7 @@
             <label for="reviseSummaryLlmSelect">Summary LLM:</label>
             <select id="reviseSummaryLlmSelect">
                 {% for alias in summary_llm_aliases %}
-                {{ render_llm_option(alias, default_summary_llm_alias) }}
+                {{ render_llm_option(alias, default_summary_llm_alias, 'summary_agent') }}
                 {% endfor %}
             </select>
         </div>
@@ -1411,7 +1414,7 @@
             <label for="llmSelect">Model:</label>
             <select id="llmSelect">
                 {% for alias in data_llm_aliases %}
-                {{ render_llm_option(alias, default_report_llm_alias) }}
+                {{ render_llm_option(alias, default_report_llm_alias, 'report_agent') }}
                 {% endfor %}
             </select>
         </div>

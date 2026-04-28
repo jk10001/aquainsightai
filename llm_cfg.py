@@ -57,6 +57,11 @@ ALIASES_VISION = [
     if entry.get("metadata", {}).get("vision_capable")
 ]
 
+# Metadata for frontend role availability and other model capabilities.
+MODEL_METADATA: dict[Alias, MutableMapping[str, Any]] = {
+    alias: entry.get("metadata", {}) for alias, entry in _LOOKUP.items()
+}
+
 # Additional information for frontend (e.g., parameter schemas)
 MODEL_INFO: dict[Alias, MutableMapping[str, Any]] = {
     alias: entry.get("additional_info", {}) for alias, entry in _LOOKUP.items()

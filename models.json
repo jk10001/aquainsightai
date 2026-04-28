@@ -7,7 +7,10 @@
             "type": "disabled"
         },
         "metadata": {
-            "vision_capable": true
+            "vision_capable": true,
+            "excluded_agents": [
+                "report_agent"
+            ]
         },
         "additional_info": {
             "parameters": {
@@ -30,7 +33,10 @@
             "type": "disabled"
         },
         "metadata": {
-            "vision_capable": true
+            "vision_capable": true,
+            "excluded_agents": [
+                "report_agent"
+            ]
         },
         "additional_info": {
             "parameters": {
@@ -53,7 +59,10 @@
             "type": "disabled"
         },
         "metadata": {
-            "vision_capable": true
+            "vision_capable": true,
+            "excluded_agents": [
+                "report_agent"
+            ]
         },
         "additional_info": {
             "parameters": {
@@ -74,7 +83,10 @@
         "api_type": "openai",
         "reasoning_effort": "low",
         "metadata": {
-            "vision_capable": true
+            "vision_capable": true,
+            "excluded_agents": [
+                "process_agent"
+            ]
         },
         "additional_info": {
             "parameters": {
@@ -98,7 +110,8 @@
         "api_type": "openai",
         "reasoning_effort": "low",
         "metadata": {
-            "vision_capable": true
+            "vision_capable": true,
+            "excluded_agents": []
         },
         "additional_info": {
             "parameters": {
@@ -122,7 +135,8 @@
         "api_type": "openai",
         "reasoning_effort": "low",
         "metadata": {
-            "vision_capable": true
+            "vision_capable": true,
+            "excluded_agents": []
         },
         "additional_info": {
             "parameters": {
@@ -146,7 +160,8 @@
         "api_type": "openai",
         "reasoning_effort": "low",
         "metadata": {
-            "vision_capable": true
+            "vision_capable": true,
+            "excluded_agents": []
         },
         "additional_info": {
             "parameters": {
@@ -169,7 +184,8 @@
         "key_env": "OPENAI_API_KEY",
         "api_type": "openai",
         "metadata": {
-            "vision_capable": true
+            "vision_capable": true,
+            "excluded_agents": []
         }
     },
     "Gemini 3.1 Pro": {
@@ -177,7 +193,10 @@
         "key_env": "GEMINI_API_KEY",
         "api_type": "google",
         "metadata": {
-            "vision_capable": true
+            "vision_capable": true,
+            "excluded_agents": [
+                "process_agent"
+            ]
         },
         "additional_info": {
             "parameters": {
@@ -201,7 +220,11 @@
         "thinking_level": "Low",
         "include_thoughts": false,
         "metadata": {
-            "vision_capable": true
+            "vision_capable": true,
+            "excluded_agents": [
+                "process_agent",
+                "int_data_coding_agent"
+            ]
         },
         "additional_info": {
             "parameters": {
@@ -224,7 +247,11 @@
         "key_env": "GEMINI_API_KEY",
         "api_type": "google",
         "metadata": {
-            "vision_capable": true
+            "vision_capable": true,
+            "excluded_agents": [
+                "process_agent",
+                "int_data_coding_agent"
+            ]
         }
     }
 }

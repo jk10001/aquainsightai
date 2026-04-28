@@ -53,6 +53,7 @@ from llm_cfg import (
     ALIASES,
     ALIASES_VISION,
     MODEL_INFO,
+    MODEL_METADATA,
     cfg,
 )
 from utils.lo_orchestrator import (
@@ -106,6 +107,7 @@ AGENT_CACHE = None
 RUN_AGENTOPS = False
 TABLE_SIG_FIGS = 6
 DEFAULT_USER_NOTES = "No notes provided."
+SELECTIVE_LLM_ROLE_EXCLUSION = True
 ANTHROPIC_THINKING_ENABLE = True
 ALLOW_HTML_SUMMARY_GENERATION = False
 REMOVE_PREVIOUS_IMAGES = False
@@ -126,35 +128,87 @@ DEFAULT_REPORT_LLM_ALIAS = "GPT-5.2"
 QUERY_REFERENCE_DOC_LLM_NAME = "gemini-2.5-flash-lite"
 
 
-def _resolve_default_alias(default_alias: str, alias_pool: list[str]) -> str:
+def _is_alias_excluded_for_agent(alias: str, agent_role: Optional[str]) -> bool:
+    """Return whether an alias is configured as unavailable for an agent role."""
+
+    if not SELECTIVE_LLM_ROLE_EXCLUSION or not agent_role:
+        return False
+
+    return agent_role in MODEL_METADATA.get(alias, {}).get("excluded_agents", [])
+
+
+def _validate_alias_for_agent(alias: str, agent_role: str) -> None:
+    """Raise if a model alias is excluded for an agent role."""
+
+    if _is_alias_excluded_for_agent(alias, agent_role):
+        raise ValueError(f"LLM alias '{alias}' is excluded for {agent_role}.")
+
+
+def _mask_secret(value: Any) -> Any:
+    """Return a display-safe version of a secret value."""
+
+    if not isinstance(value, str) or not value:
+        return value
+
+    visible_chars = 4
+    if len(value) <= visible_chars:
+        return "<redacted>"
+
+    return f"<redacted:{value[-visible_chars:]}>"
+
+
+def _cfg_for_display(alias: str, **extra: Any) -> list[dict]:
+    """Return an LLM config with sensitive values masked for terminal output."""
+
+    display_config = []
+    for config in cfg(alias, **extra):
+        safe_config = dict(config)
+        if "api_key" in safe_config:
+            safe_config["api_key"] = _mask_secret(safe_config["api_key"])
+        display_config.append(safe_config)
+
+    return display_config
+
+
+def _resolve_default_alias(
+    default_alias: str, alias_pool: list[str], agent_role: Optional[str] = None
+) -> str:
     """Return a usable default alias, preferring one with a valid API key."""
 
-    if API_KEY_STATUS.get(default_alias):
+    if API_KEY_STATUS.get(default_alias) and not _is_alias_excluded_for_agent(
+        default_alias, agent_role
+    ):
         return default_alias
 
     for alias in alias_pool:
-        if API_KEY_STATUS.get(alias):
+        if API_KEY_STATUS.get(alias) and not _is_alias_excluded_for_agent(
+            alias, agent_role
+        ):
             cprint(
-                f"API key missing for default alias '{default_alias}'. Using '{alias}' instead.",
+                f"Default alias '{default_alias}' is unavailable. Using '{alias}' instead.",
                 "cyan",
             )
             return alias
 
     cprint(
-        f"No available API keys found for aliases: {', '.join(alias_pool)}."
-        " The configured default '{default_alias}' remains unavailable.",
+        f"No available LLM aliases found in pool: {', '.join(alias_pool)}."
+        f" The configured default '{default_alias}' remains unavailable.",
         "red",
     )
     return default_alias
 
 
 DEFAULT_REPORT_LLM_ALIAS = _resolve_default_alias(
-    DEFAULT_REPORT_LLM_ALIAS, ALIASES_VISION
+    DEFAULT_REPORT_LLM_ALIAS, ALIASES_VISION, "report_agent"
 )
-DEFAULT_DATA_LLM_ALIAS = _resolve_default_alias(DEFAULT_DATA_LLM_ALIAS, ALIASES_VISION)
-DEFAULT_CODE_LLM_ALIAS = _resolve_default_alias(DEFAULT_CODE_LLM_ALIAS, ALIASES)
+DEFAULT_DATA_LLM_ALIAS = _resolve_default_alias(
+    DEFAULT_DATA_LLM_ALIAS, ALIASES_VISION, "process_agent"
+)
+DEFAULT_CODE_LLM_ALIAS = _resolve_default_alias(
+    DEFAULT_CODE_LLM_ALIAS, ALIASES, "int_data_coding_agent"
+)
 DEFAULT_SUMMARY_LLM_ALIAS = _resolve_default_alias(
-    DEFAULT_SUMMARY_LLM_ALIAS, ALIASES_VISION
+    DEFAULT_SUMMARY_LLM_ALIAS, ALIASES_VISION, "summary_agent"
 )
 
 if os.environ.get("GEMINI_API_KEY"):
@@ -1130,17 +1184,19 @@ def initialise_agents(
 
     try:
         executor = None
+        _validate_alias_for_agent(data_llm_alias, "process_agent")
+        _validate_alias_for_agent(code_llm_alias, "int_data_coding_agent")
 
         message = "Initialising..."
         cprint(message, "cyan", attrs=["bold"])
         socketio.emit("update_popup", {"line1": message})
 
         cprint(
-            f"Data analysis LLM:\n{cfg(data_llm_alias, **(data_llm_params or {}))}\n",
+            f"Data analysis LLM:\n{_cfg_for_display(data_llm_alias, **(data_llm_params or {}))}\n",
             "cyan",
         )
         cprint(
-            f"Code analysis LLM:\n{cfg(code_llm_alias, **(code_llm_params or {}))}\n",
+            f"Code analysis LLM:\n{_cfg_for_display(code_llm_alias, **(code_llm_params or {}))}\n",
             "cyan",
         )
 
@@ -2028,6 +2084,7 @@ def generate_report(
     """Generate a report from the analysis data and instructions."""
     try:
         report_reply = None
+        _validate_alias_for_agent(llm_alias, "report_agent")
         message = "Generating report..."
         cprint(message, "cyan", attrs=["bold"])
         socketio.emit("update_popup", {"message": message})
@@ -2051,7 +2108,10 @@ def generate_report(
             analysis, instructions, include_existing_report
         )
 
-        cprint(f"Report LLM:\n{cfg(llm_alias, **(llm_params or {}))}\n", "cyan")
+        cprint(
+            f"Report LLM:\n{_cfg_for_display(llm_alias, **(llm_params or {}))}\n",
+            "cyan",
+        )
 
         cprint(
             f"report_agent system message tokens: {autogen.token_count_utils.count_token(report_agent_sys_message, model='gpt-4o')}",
@@ -2504,13 +2564,14 @@ def create_summary(
     Returns: str output from LLM summariser.
     """
     include_images_in_html = include_images_in_html and ALLOW_HTML_SUMMARY_GENERATION
+    _validate_alias_for_agent(summary_llm_alias, "summary_agent")
 
     message = "Summarising analysis..."
     cprint(message, "cyan", attrs=["bold"])
     socketio.emit("update_popup", {"message": message})
 
     cprint(
-        f"Summary LLM:\n{cfg(summary_llm_alias, **(summary_llm_params or {}))}\n",
+        f"Summary LLM:\n{_cfg_for_display(summary_llm_alias, **(summary_llm_params or {}))}\n",
         "cyan",
     )
 
@@ -2837,6 +2898,8 @@ def index():
         default_code_llm_alias=DEFAULT_CODE_LLM_ALIAS,
         default_summary_llm_alias=DEFAULT_SUMMARY_LLM_ALIAS,
         model_info=MODEL_INFO,
+        model_metadata=MODEL_METADATA,
+        selective_llm_role_exclusion=SELECTIVE_LLM_ROLE_EXCLUSION,
         anthropic_thinking_enable=ANTHROPIC_THINKING_ENABLE,
         allow_html_summary_generation=ALLOW_HTML_SUMMARY_GENERATION,
         llm_api_key_status=API_KEY_STATUS,
