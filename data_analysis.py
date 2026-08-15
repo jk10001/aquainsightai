@@ -121,9 +121,9 @@ DEFAULT_DATA_LLM_ALIAS = "GPT-5.2"
 # int_data_coding_agent - alias from llm_cfg ALIASES
 DEFAULT_CODE_LLM_ALIAS = "GPT-5 mini"
 # summary_agent - alias from llm_cfg ALIASES_VISION
-DEFAULT_SUMMARY_LLM_ALIAS = "Gemini 3 Flash"
+DEFAULT_SUMMARY_LLM_ALIAS = "Gemini 3.7 Flash"
 # report_agent - alias from llm_cfg ALIASES_VISION
-DEFAULT_REPORT_LLM_ALIAS = "GPT-5.2"
+DEFAULT_REPORT_LLM_ALIAS = "Gemini 3.7 Flash"
 # Model for reference document query - must be a Gemini model name for reference document queries. This does not use alias pool - provide actual model name - "gemini-2.5-flash-lite" or "gemini-3-flash-preview"
 QUERY_REFERENCE_DOC_LLM_NAME = "gemini-2.5-flash-lite"
 
