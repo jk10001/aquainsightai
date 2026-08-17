@@ -15,6 +15,8 @@ All LLM-generated Python code is executed in an isolated Docker container, and a
 
 ***Prompts have been developed for water and process engineering applications, but the system is domain-agnostic—by modifying the YAML prompt templates, it can be adapted to other technical fields.***
 
+![AquaInsightAI overview](docs/images/recording_1.gif)
+
 
 ## Key Features
 
@@ -226,10 +228,10 @@ QUERY_REFERENCE_DOC_LLM_NAME = "gemini-2.5-flash-lite"
 ### Agent Roles
 | Agent | Function | Recommended Models |
 | --- | --- | --- |
-| **process_agent** | Orchestrates the workflow and drives core analysis logic. | GPT-5.2<br>Claude Sonnet 4.6<br>(GPT-5.4 and Gemini models are currently not supported for this role) |
+| **process_agent** | Orchestrates the workflow and drives core analysis logic. | GPT-5.6-terra<br>GPT-5.2<br>Claude Sonnet 4.6<br>(GPT-5.4 and Gemini models are currently not supported for this role) |
 | **int_data_coding_agent** | Generates Python for charts and tables. | Smaller models suitable.<br>GPT 4.1-mini<br>GPT 5-mini |
-| **summary_agent** | Produces concise findings summary. | Smaller models suitable.<br>Gemini 3 Flash |
-| **report_agent** | Writes DOCX code and reviews report. | GPT-5.2<br>Smaller models also suitable.<br>Gemini 3 Flash<br>(Claude models are currently not supported for this role) |
+| **summary_agent** | Produces concise findings summary. | Smaller models suitable.<br>Gemini 3.7 Flash |
+| **report_agent** | Writes DOCX code and reviews report. | GPT-5.2<br>Smaller models also suitable.<br>Gemini 3.7 Flash<br>(Claude models are currently not supported for this role) |
 | **query_reference_docs** | Answer queries about PDFs of standards or guidelines.<br>See Reference Documents section. | Gemini 3 Flash / 2.5 Flash-Lite only |
 
 
